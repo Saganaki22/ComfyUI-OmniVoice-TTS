@@ -23,6 +23,24 @@
 
 ## 安装
 
+> ⚠️ **安装前：请记录您的PyTorch版本！**
+>
+> 运行此命令并保存输出 - 如果出现问题您会需要它：
+> ```bash
+> python -c "import torch; print(f'torch={torch.__version__} cuda={torch.version.cuda}')"
+> ```
+> 示例输出：`torch=2.10.0+cu128 cuda=12.8`
+>
+> 如果安装破坏了您的PyTorch，使用以下命令恢复：
+> ```bash
+> # 使用pip：
+> pip install torch torchaudio --index-url https://download.pytorch.org/whl/<您的CUDA版本>
+>
+> # 使用uv：
+> uv pip install torch torchaudio --index-url https://download.pytorch.org/whl/<您的CUDA版本>
+> ```
+> 将`<您的CUDA版本>`替换为您的版本（如`cu128`、`cu124`、`cu121`、`cu118`）
+
 ### 方法1：ComfyUI Manager（推荐）
 在ComfyUI Manager中搜索"OmniVoice"并点击安装。
 

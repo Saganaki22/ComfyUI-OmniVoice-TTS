@@ -24,6 +24,25 @@
 - **Whisper ASR Caching** — Pre-load Whisper to avoid re-downloading on each run
 - **VRAM Efficient** — Automatic CPU offload, VBAR/aimdo integration
 ## Installation
+
+> ⚠️ **BEFORE INSTALLING: Note your PyTorch version!**
+>
+> Run this command and save the output - you'll need it if anything goes wrong:
+> ```bash
+> python -c "import torch; print(f'torch={torch.__version__} cuda={torch.version.cuda}')"
+> ```
+> Example output: `torch=2.10.0+cu128 cuda=12.8`
+>
+> If installation breaks your PyTorch, restore it with one of:
+> ```bash
+> # Using pip:
+> pip install torch torchaudio --index-url https://download.pytorch.org/whl/<your_cuda>
+>
+> # Using uv:
+> uv pip install torch torchaudio --index-url https://download.pytorch.org/whl/<your_cuda>
+> ```
+> Replace `<your_cuda>` with your version (e.g., `cu128`, `cu124`, `cu121`, `cu118`)
+
 ### Method 1: ComfyUI Manager (Recommended)
 Search for "OmniVoice" in ComfyUI Manager and click Install.
 ### Method 2: Manual Install
