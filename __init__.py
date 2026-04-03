@@ -12,7 +12,7 @@ Model weights are auto-downloaded from HuggingFace on first inference.
 Supports 600+ languages with zero-shot voice cloning and voice design.
 """
 
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 
 import logging
 import sys

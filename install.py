@@ -42,12 +42,9 @@ def run_cmd(cmd, timeout=300):
 
 
 def is_installed(package_name):
-    """Check if a package is installed."""
-    try:
-        __import__(package_name)
-        return True
-    except ImportError:
-        return False
+    """Check if a package is installed using importlib (no side effects)."""
+    import importlib.util
+    return importlib.util.find_spec(package_name) is not None
 
 
 def pip_install(package, no_deps=False, upgrade=False):
@@ -156,7 +153,10 @@ def main():
         else:
             print(f"[OmniVoice] Installing {description} ({pip_name})...")
             use_no_deps = pip_name in no_deps_packages
-            pip_install(pip_name, no_deps=use_no_deps)
+            success = pip_install(pip_name, no_deps=use_no_deps)
+            if not success:
+                # Last resort: force pip directly
+                run_cmd([sys.executable, "-m", "pip", "install", pip_name])
 
     # STEP 4: Final verification
     print("")

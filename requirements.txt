@@ -1,12 +1,10 @@
-# BEST PRACTICE: Leave this file EMPTY or only include packages that:
-# 1. ComfyUI does NOT provide
-# 2. Do NOT depend on torch/numpy/transformers
+# Manual dependency reference — DO NOT uncomment, these are managed by install.py
+# to prevent PyTorch from being downgraded by omnivoice's pinned torch==2.8.* requirement
 #
-# NEVER list these - ComfyUI manages them:
-#   torch, torchaudio, torchvision, transformers, numpy, einops,
-#   safetensors, huggingface-hub, accelerate, librosa, soundfile
-#
-# NEVER list omnivoice here - it forces torch downgrade!
-# omnivoice is installed via install.py with --no-deps
-#
-# All dependencies are handled by install.py for safety.
+# omnivoice        --no-deps  (pinned to torch==2.8.*, installed with --no-deps to protect ComfyUI's PyTorch)
+# pydub                       (imported by omnivoice at module level)
+# soundfile        --no-deps
+# scipy            --no-deps
+# librosa          --no-deps
+# sentencepiece    --no-deps
+# jieba            --no-deps
