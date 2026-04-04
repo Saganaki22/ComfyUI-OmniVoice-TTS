@@ -319,6 +319,17 @@ Connect `OmniVoice Whisper Loader` to `whisper_model` input on Voice Clone TTS t
 ### Import errors after install
 Restart ComfyUI completely to reload Python modules.
 
+### Transformers version
+
+OmniVoice requires `transformers>=5.3.0`. If you see an error like `omnivoice import failed` or `cannot import name 'HiggsAudioV2TokenizerModel'` in your ComfyUI logs, your transformers version may be too old.
+
+> ⚠️ **Only do this if you know what you are doing.** Upgrading transformers may break other custom nodes that depend on an older version. Test your other nodes after upgrading.
+
+To upgrade:
+```
+path\to\ComfyUI\venv\Scripts\python.exe -m pip install "transformers>=5.3.0"
+```
+
 ### FFmpeg error on Windows when saving audio
 Add your FFmpeg `bin/` folder to `PATH` in your ComfyUI launch `.bat` file, or use a WAV audio save node instead.
 

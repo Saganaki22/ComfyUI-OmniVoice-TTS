@@ -313,6 +313,17 @@ export HF_ENDPOINT="https://hf-mirror.com"
 ### 安装后出现导入错误
 完全重启ComfyUI以重新加载Python模块。
 
+### Transformers版本
+
+OmniVoice需要 `transformers>=5.3.0`。如果您在ComfyUI日志中看到 `omnivoice import failed` 或 `cannot import name 'HiggsAudioV2TokenizerModel'` 等错误，可能是transformers版本过旧。
+
+> ⚠️ **请仅在了解风险的情况下操作。** 升级transformers可能会导致依赖旧版本的其他自定义节点出现问题。升级后请测试其他节点。
+
+升级方法：
+```
+path\to\ComfyUI\venv\Scripts\python.exe -m pip install "transformers>=5.3.0"
+```
+
 ### Windows保存音频时FFmpeg错误
 在ComfyUI启动 `.bat` 文件中将FFmpeg的 `bin/` 文件夹添加到 `PATH`，或使用WAV音频保存节点。
 
