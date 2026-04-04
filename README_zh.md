@@ -296,6 +296,11 @@ ComfyUI/models/
 
 ## 故障排除
 
+详细的故障排除指南请参阅 [docs/TROUBLESHOOTING_zh.md](docs/TROUBLESHOOTING_zh.md)（[English](docs/TROUBLESHOOTING.md)）。
+
+<details>
+<summary>常见问题快速修复</summary>
+
 ### 模型下载失败（中国）
 启动ComfyUI前设置HuggingFace镜像：
 ```bash
@@ -326,6 +331,8 @@ path\to\ComfyUI\venv\Scripts\python.exe -m pip install "transformers>=5.3.0"
 
 ### Windows保存音频时FFmpeg错误
 在ComfyUI启动 `.bat` 文件中将FFmpeg的 `bin/` 文件夹添加到 `PATH`，或使用WAV音频保存节点。
+
+</details>
 
 ## 致谢
 

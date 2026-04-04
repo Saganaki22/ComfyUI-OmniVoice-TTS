@@ -302,6 +302,11 @@ The node caches loaded models for reuse. Changing any of these parameters **forc
 
 ## Troubleshooting
 
+For detailed troubleshooting guides, see [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
+
+<details>
+<summary>Quick fixes for common issues</summary>
+
 ### Model download fails (China)
 Set the HuggingFace mirror before starting ComfyUI:
 ```bash
@@ -332,6 +337,8 @@ path\to\ComfyUI\venv\Scripts\python.exe -m pip install "transformers>=5.3.0"
 
 ### FFmpeg error on Windows when saving audio
 Add your FFmpeg `bin/` folder to `PATH` in your ComfyUI launch `.bat` file, or use a WAV audio save node instead.
+
+</details>
 
 ## Credits
 
