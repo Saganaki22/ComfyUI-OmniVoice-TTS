@@ -141,11 +141,12 @@ def main():
         ("sentencepiece", "sentencepiece", "Tokenization"),
         ("jieba", "jieba", "Chinese text segmentation"),
         ("pydub", "pydub", "Audio manipulation (required by omnivoice at import time)"),
+        ("soxr", "soxr", "Audio resampling (required by transformers HiggsAudio tokenizer)"),
     ]
 
     # Packages safe to install with --no-deps (no transitive deps that
     # aren't already in a standard ComfyUI environment).
-    no_deps_packages = {"soundfile", "sentencepiece", "jieba", "scipy", "librosa"}
+    no_deps_packages = {"soundfile", "sentencepiece", "jieba", "scipy", "librosa", "soxr"}
 
     for import_name, pip_name, description in extra_packages:
         if is_installed(import_name):
