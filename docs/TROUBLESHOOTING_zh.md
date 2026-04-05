@@ -4,10 +4,8 @@
 
 ## 目录
 
-- [安装后节点缺失（最常见）](#安装后节点缺失最常见)
+- [从这里开始 — 只有 Whisper 节点加载，其他节点全部缺失](#从这里开始--只有-whisper-节点加载其他节点全部缺失)
 - [从 omnivoice 0.1.1 升级到 0.1.2](#从-omnivoice-011-升级到-012)
-- [soxr 缺失错误](#soxr-缺失错误)
-- [omnivoice 导入失败 / HiggsAudioV2TokenizerModel](#omnivoice-导入失败--higgsaudiov2tokenizermodel)
 - [No module named pip](#no-module-named-pip)
 - [安装后 PyTorch CUDA 损坏](#安装后-pytorch-cuda-损坏)
 - [Transformers 版本冲突](#transformers-版本冲突)
@@ -19,18 +17,92 @@
 
 ---
 
-## 安装后节点缺失（最常见）
+## 从这里开始 — 只有 Whisper 节点加载，其他节点全部缺失
 
-**症状：** ComfyUI 加载了节点包，但只出现 `OmniVoice Whisper Loader`。其他所有节点（`OmniVoiceLongformTTS`、`OmniVoiceVoiceCloneTTS`、`OmniVoiceVoiceDesignTTS`、`OmniVoiceMultiSpeakerTTS`）都缺失。
+这是最常见的问题。如果你在 ComfyUI 中只能看到 `OmniVoice Whisper Loader`，而其他所有节点（`OmniVoiceLongformTTS`、`OmniVoiceVoiceCloneTTS`、`OmniVoiceVoiceDesignTTS`、`OmniVoiceMultiSpeakerTTS`）缺失或显示为红色，请按照本指南操作。
 
-**原因：** 其他节点只有在 `omnivoice` 成功导入时才会注册。如果 `omnivoice` 因任何原因导入失败，`__init__.py` 会跳过它们。Whisper Loader 不依赖 `omnivoice`，所以始终会注册。
+**原因：** 其他节点只有在 `omnivoice` 启动时成功导入后才会注册。任何导入失败都会导致它们全部被跳过。Whisper Loader 因为不依赖 `omnivoice`，所以始终会注册。
 
-**检查 ComfyUI 启动日志中是否有类似以下的行：**
+---
+
+### 第一步 — 从启动日志中读取实际错误
+
+打开你的 ComfyUI 启动日志，找到 `[OmniVoice]` 部分。你会看到类似以下的行：
+
 ```
-[OmniVoice] omnivoice import failed: ...
+[OmniVoice] omnivoice import failed: <此处为错误信息>
 ```
 
-冒号后面的错误信息才是真正的原因。最常见的原因和修复方法见下方。
+将你的错误信息与下方的情况进行对照。
+
+---
+
+### 情况 A — `cannot import name 'HiggsAudioV2TokenizerModel' from 'transformers'`
+
+> ⚠️ **尽管这个错误看起来像 `transformers` 太旧，但实际上并不是。** 此错误是由缺少 `soxr` 包引起的，而不是 `transformers` 中缺少某个类。这个令人困惑的错误信息是已知的误导性提示。
+
+**原因：** `transformers 5.4+` 在其音频工具模块中新增了 `soxr` 作为必需导入。当 `omnivoice` 加载 `HiggsAudioV2TokenizerModel` 时，`transformers` 内部会尝试导入 `soxr` — 如果未安装，整条链路就会崩溃并显示此误导性错误。
+
+**修复方法 — 安装 `soxr`：**
+
+Windows（venv）：
+```bash
+C:\Users\<你>\Documents\ComfyUI\venv\Scripts\pip install soxr
+```
+
+Windows（便携版 / 内嵌 Python）：
+```bash
+C:\ComfyUI\python_embeded\python.exe -m pip install soxr
+```
+
+Linux / macOS：
+```bash
+path/to/ComfyUI/venv/bin/pip install soxr
+```
+
+使用 uv：
+```bash
+uv pip install soxr
+```
+
+然后**重启 ComfyUI**。所有节点应该正常出现。
+
+> **新安装用户注意：** 从节点版本 `0.2.7` 开始，`soxr` 已包含在 `install.py` 中，会自动安装。如果你在此版本之前安装的，请使用上述命令手动安装。
+
+---
+
+### 情况 B — `No module named 'omnivoice'`
+
+`omnivoice` 包未安装。请手动运行 `install.py`：
+
+Windows（venv）：
+```bash
+C:\Users\<你>\Documents\ComfyUI\venv\Scripts\python install.py
+```
+
+Windows（便携版 / 内嵌 Python）：
+```bash
+C:\ComfyUI\python_embeded\python.exe install.py
+```
+
+Linux / macOS：
+```bash
+path/to/ComfyUI/venv/bin/python install.py
+```
+
+然后**重启 ComfyUI**。
+
+> ⚠️ 永远不要在没有 `--no-deps` 的情况下运行 `pip install omnivoice`。omnivoice 包固定了 `torch==2.8.*`，这会将你的 PyTorch 降级为仅 CPU 版本并破坏 ComfyUI 的 GPU 加速。`install.py` 会为你安全地处理这个问题。
+
+---
+
+### 情况 C — 其他任何错误信息
+
+如果你的错误信息与情况 A 或 B 均不匹配：
+
+1. 复制启动日志中完整的 `[OmniVoice]` 部分
+2. 运行 `pip show omnivoice transformers torch` 并复制输出
+3. 携带上述信息在 [github.com/Saganaki22/ComfyUI-OmniVoice-TTS/issues](https://github.com/Saganaki22/ComfyUI-OmniVoice-TTS/issues) 提交 Issue
 
 ---
 
@@ -44,80 +116,30 @@ omnivoice `0.1.1` 于 2026 年 4 月 2 日发布。版本 `0.1.2` 于 2026 年 4
 
 > ⚠️ **必须使用 `--no-deps`**。omnivoice pip 包声明了 `torch==2.8.*` 和 `transformers==5.3.0` 作为硬依赖。不使用 `--no-deps` 安装会将 PyTorch 降级为仅 CPU 版本，破坏 ComfyUI 的 GPU 加速。
 
-### Windows（venv）
+Windows（venv）：
 ```bash
 C:\Users\<你>\Documents\ComfyUI\venv\Scripts\pip install omnivoice==0.1.2 --no-deps
 ```
 
-### Windows（便携版 / 内嵌 Python）
+Windows（便携版 / 内嵌 Python）：
 ```bash
 C:\ComfyUI\python_embeded\python.exe -m pip install omnivoice==0.1.2 --no-deps
 ```
 
-### Linux / macOS
+Linux / macOS：
 ```bash
 path/to/ComfyUI/venv/bin/pip install omnivoice==0.1.2 --no-deps
 ```
 
-### 使用 uv（如果你的环境使用 uv）
+使用 uv：
 ```bash
 uv pip install omnivoice==0.1.2 --no-deps
 ```
 
-升级后，如果你有 `transformers 5.4+`，还需要安装 `soxr` — 见下一节。
-
----
-
-## soxr 缺失错误
-
-**症状：** ComfyUI 日志显示：
-```
-ModuleNotFoundError: No module named 'soxr'
-```
-或者
-```
-[OmniVoice] omnivoice import failed: Could not import module 'HiggsAudioV2TokenizerModel'. Are this object's requirements defined correctly?
-```
-
-**原因：** `transformers 5.4+` 在 `audio_utils.py` 中新增了 `soxr` 作为 HiggsAudio tokenizer 路径的必需导入。当 `omnivoice` 尝试从 transformers 加载 `HiggsAudioV2TokenizerModel` 时，transformers 内部导入 `audio_utils`，后者导入 `soxr` — 如果 `soxr` 未安装，整条链路就会崩溃。
-
-令人困惑的 `HiggsAudioV2TokenizerModel` 错误信息是误导性的 — 它是 `soxr` 导入失败的下游后果，而不是缺少模型类。
-
-这只影响使用 `transformers 5.4+` 的用户。使用 `transformers 5.3.0` 的用户不会遇到此问题。
-
-**修复方法：**
-
-### Windows（venv）
+升级后，如果你有 `transformers 5.4+`，还需要安装 `soxr`：
 ```bash
-C:\Users\<你>\Documents\ComfyUI\venv\Scripts\pip install soxr
+pip install soxr
 ```
-
-### Windows（便携版 / 内嵌 Python）
-```bash
-C:\ComfyUI\python_embeded\python.exe -m pip install soxr
-```
-
-### Linux / macOS
-```bash
-path/to/ComfyUI/venv/bin/pip install soxr
-```
-
-### 使用 uv
-```bash
-uv pip install soxr
-```
-
-然后**重启 ComfyUI**。所有节点应该正常出现。
-
-> **新安装用户注意：** 从节点版本 `0.2.7` 开始，`soxr` 已包含在 `install.py` 中，会自动安装。如果你在此版本之前安装的，请使用上述命令手动安装。
-
----
-
-## omnivoice 导入失败 / HiggsAudioV2TokenizerModel
-
-见上方的 [soxr 缺失错误](#soxr-缺失错误) 部分 — 这是同一个问题。`HiggsAudioV2TokenizerModel` 错误是由 `soxr` 未安装引起的。
-
-如果安装 `soxr` 后仍未解决，请检查完整 ComfyUI 日志中 `[OmniVoice]` 下的其他错误行，并在 [Issues](https://github.com/Saganaki22/ComfyUI-OmniVoice-TTS/issues) 中报告。
 
 ---
 
@@ -127,8 +149,6 @@ uv pip install soxr
 ```
 [OmniVoice] Failed to install omnivoice: ...\python.exe: No module named pip
 ```
-
-**原因：** 你的 Python 环境完全缺少 `pip`，这不太常见，但可能在某些 venv 设置或 `uv` 管理的环境中发生。
 
 **修复 — 先引导安装 pip：**
 ```bash
@@ -148,7 +168,7 @@ UserWarning: CUDA initialization: CUDA unknown error
 
 **原因：** 另一个包（可能是未使用 `--no-deps` 安装的 `omnivoice`，或其他自定义节点）将你的 PyTorch 降级到了仅 CPU 版本。
 
-**修复：** 查看 [PyTorch 兼容性矩阵](https://github.com/Saganaki22/ComfyUI-OmniVoice-TTS/blob/main/pytorch_compatibility_matrix.md)获取与你的 CUDA 版本匹配的恢复命令。
+**修复：** 查看 [PyTorch 兼容性矩阵](https://github.com/Saganaki22/ComfyUI-OmniVoice-TTS/blob/main/pytorch_compatibility_matrix.md) 获取与你的 CUDA 版本匹配的恢复命令。
 
 CUDA 12.8 的通用恢复命令：
 ```bash
@@ -163,9 +183,9 @@ pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu128
 
 ## Transformers 版本冲突
 
-**症状：** 提到 transformers 版本的错误，或安装 OmniVoice 后其他自定义节点损坏。
+**症状：** 安装 OmniVoice 后其他自定义节点损坏，或出现提到 `transformers` 版本不兼容的错误。
 
-**背景：** 上游 `omnivoice` 包固定了 `transformers==5.3.0`。我们的 `install.py` 通过 `--no-deps` 故意忽略了这个固定版本，以避免破坏你现有的设置。这意味着 OmniVoice 可以与更新的 transformers 版本一起工作，但有一个注意事项：`transformers 5.4+` 需要 `soxr`（见上方）。
+**背景：** 上游 `omnivoice` 包固定了 `transformers==5.3.0`，但 `install.py` 通过 `--no-deps` 故意忽略了这个固定版本，以避免破坏你现有的设置。OmniVoice 可以与任何较新的 `transformers` 版本配合使用，但有一个注意事项：`transformers 5.4+` 需要 `soxr`（见上方[情况 A](#情况-a--cannot-import-name-higgsaudiov2tokenizermodel-from-transformers)）。
 
 **检查 transformers 版本：**
 ```bash
@@ -189,17 +209,17 @@ pip install soxr
 
 在启动 ComfyUI 之前设置 HuggingFace 镜像：
 
-**Linux / macOS：**
+Linux / macOS：
 ```bash
 export HF_ENDPOINT="https://hf-mirror.com"
 ```
 
-**Windows（命令提示符）：**
+Windows（命令提示符）：
 ```cmd
 set HF_ENDPOINT=https://hf-mirror.com
 ```
 
-**Windows（PowerShell）：**
+Windows（PowerShell）：
 ```powershell
 $env:HF_ENDPOINT="https://hf-mirror.com"
 ```
@@ -243,6 +263,8 @@ set PATH=C:\path\to\ffmpeg\bin;%PATH%
 **症状：** 全新安装或更新后 ComfyUI 启动时出现通用 Python 导入错误。
 
 **修复：** 完全重启 ComfyUI。Python 模块在每个进程中只加载一次 — 需要完全重启才能使新安装的包生效。不要使用 ComfyUI 界面中的"Reload"按钮，因为它不会重新加载 Python 模块。
+
+> **Google Colab 用户注意：** 断开连接后环境会重置，每次会话都需要重新安装。如果在安装过程中使用 `--cpu` 运行，可能导致 PyTorch CUDA 检测失败 — 请尽量在 GPU 可用的情况下安装包。
 
 ---
 
