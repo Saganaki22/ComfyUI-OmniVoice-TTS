@@ -385,6 +385,18 @@ class OmniVoiceLongformTTS:
                         ),
                     },
                 ),
+                "instruct": (
+                    "STRING",
+                    {
+                        "multiline": False,
+                        "default": "",
+                        "tooltip": (
+                            "Optional dialect/style instruction (e.g., '四川话' for Sichuan dialect). "
+                            "Applied to every chunk during longform generation. "
+                            "Leave empty for default behaviour."
+                        ),
+                    },
+                ),
             },
             "optional": {
                 "ref_audio": (
@@ -441,6 +453,7 @@ class OmniVoiceLongformTTS:
         preprocess_prompt: bool,
         postprocess_output: bool,
         keep_model_loaded: bool,
+        instruct: str,
         ref_audio: dict = None,
         whisper_model: dict = None,
     ) -> Tuple[dict]:
@@ -558,6 +571,9 @@ class OmniVoiceLongformTTS:
                     gen_kwargs["ref_audio"] = (ref_audio_tensor, OMNIVOICE_SAMPLE_RATE)
                     if ref_text.strip():
                         gen_kwargs["ref_text"] = ref_text.strip()
+
+                if instruct and instruct.strip():
+                    gen_kwargs["instruct"] = instruct.strip()
 
                 if duration > 0:
                     gen_kwargs["duration"] = duration

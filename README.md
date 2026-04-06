@@ -2,6 +2,8 @@
 
 **OmniVoice TTS nodes for ComfyUI** — Zero-shot multilingual text-to-speech with voice cloning and voice design. Supports **600+ languages** with state-of-the-art quality.
 
+[中文文档](README_zh.md)
+
 [![OmniVoice Model](https://img.shields.io/badge/%F0%9F%A4%97%20OmniVoice%20Model-k2--fsa/OmniVoice-blue)](https://huggingface.co/k2-fsa/OmniVoice)
 [![OmniVoice-bf16](https://img.shields.io/badge/%F0%9F%A4%97%20OmniVoice--bf16-drbaph/OmniVoice--bf16-blue)](https://huggingface.co/drbaph/OmniVoice-bf16)
 [![Hugging Face Space](https://img.shields.io/badge/%F0%9F%A4%97%20Demo%20Space-OmniVoice-yellow)](https://huggingface.co/spaces/k2-fsa/OmniVoice)
@@ -74,6 +76,7 @@ Long-form text-to-speech with smart chunking and optional voice cloning.
 | preprocess_prompt | BOOLEAN | True | Preprocess reference audio (remove silences) |
 | postprocess_output | BOOLEAN | True | Post-process generated audio (remove long silences) |
 | keep_model_loaded | BOOLEAN | True | Keep model in memory (offloads to CPU between runs) |
+| instruct | STRING | "" | Dialect/style instruction (e.g., `四川话` for Sichuan dialect). Applied to every chunk. Leave empty for default |
 
 **Optional Inputs:**
 - `ref_audio` — Reference audio for voice cloning (3-15s optimal)
@@ -104,6 +107,7 @@ Clone a voice from reference audio.
 | preprocess_prompt | BOOLEAN | True | Preprocess reference audio (remove silences) |
 | postprocess_output | BOOLEAN | True | Post-process generated audio (remove long silences) |
 | keep_model_loaded | BOOLEAN | True | Keep model in memory |
+| instruct | STRING | "" | Dialect/style instruction (e.g., `四川话` for Sichuan dialect). Leave empty for default |
 
 **Optional Input:**
 - `whisper_model` — Pre-loaded Whisper from OmniVoice Whisper Loader
@@ -158,6 +162,7 @@ Generate dialogue between multiple speakers using `[Speaker_N]:` tags.
 | keep_model_loaded | BOOLEAN | True | Keep model in memory |
 | speaker_N_audio | AUDIO | optional | Reference audio for speaker N (1-10) |
 | speaker_N_ref_text | STRING | "" | Transcript for speaker N's ref audio |
+| speaker_N_instruct | STRING | "" | Dialect/style instruction for speaker N (e.g., `四川话`). Leave empty for default |
 
 Speaker inputs dynamically show/hide based on `num_speakers` (ComfyUI >= 0.8.1).
 
@@ -218,6 +223,22 @@ Use `[Speaker_N]:` tags in text to assign lines to different speakers:
 [Speaker_1]: Nice to meet you!
 ```
 Each speaker needs reference audio connected to the corresponding `speaker_N_audio` input.
+
+## Dialect/Style Instructions
+
+Voice Clone, Longform, and Multi-Speaker nodes expose an `instruct` field that tells the model to use a specific dialect or speaking style. This is useful for Chinese dialects where the model otherwise defaults to Standard Mandarin.
+
+**Examples:**
+| Input | Effect |
+|-------|--------|
+| `四川话` | Sichuan dialect |
+| `陕西话` | Shaanxi dialect |
+| `东北话` | Northeastern dialect |
+| `广东话` | Cantonese (spoken in Mandarin style) |
+
+Leave the field empty for default behaviour (Standard Mandarin for Chinese text).
+
+> **Note:** This is distinct from the Voice Design node's `voice_instruct` field, which controls gender, age, pitch, and accent for synthesising entirely new voices.
 
 ## Voice Design Attributes
 

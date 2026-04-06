@@ -247,6 +247,17 @@ class OmniVoiceVoiceCloneTTS:
                         ),
                     },
                 ),
+                "instruct": (
+                    "STRING",
+                    {
+                        "multiline": False,
+                        "default": "",
+                        "tooltip": (
+                            "Optional dialect/style instruction (e.g., '四川话' for Sichuan dialect). "
+                            "Leave empty for default behaviour."
+                        ),
+                    },
+                ),
             },
             "optional": {
                 "whisper_model": (
@@ -293,6 +304,7 @@ class OmniVoiceVoiceCloneTTS:
         preprocess_prompt: bool,
         postprocess_output: bool,
         keep_model_loaded: bool,
+        instruct: str,
         whisper_model: dict = None,
     ) -> Tuple[dict]:
         cancel_event.clear()
@@ -389,6 +401,8 @@ class OmniVoiceVoiceCloneTTS:
             }
             if ref_text.strip():
                 gen_kwargs["ref_text"] = ref_text.strip()
+            if instruct and instruct.strip():
+                gen_kwargs["instruct"] = instruct.strip()
             if duration > 0:
                 gen_kwargs["duration"] = duration
 

@@ -68,6 +68,7 @@ python install.py
 | preprocess_prompt | BOOLEAN | True | 预处理参考音频（去除静音，添加标点） |
 | postprocess_output | BOOLEAN | True | 后处理生成音频（去除长静音） |
 | keep_model_loaded | BOOLEAN | True | 保持模型加载（运行间自动卸载到CPU） |
+| instruct | STRING | "" | 方言/风格指令（如 `四川话`）。应用于每个分块。留空使用默认 |
 
 **可选输入：**
 - `ref_audio` — 声音克隆参考音频（3-15秒最佳）
@@ -98,6 +99,7 @@ python install.py
 | preprocess_prompt | BOOLEAN | True | 预处理参考音频 |
 | postprocess_output | BOOLEAN | True | 后处理生成音频 |
 | keep_model_loaded | BOOLEAN | True | 保持模型加载 |
+| instruct | STRING | "" | 方言/风格指令（如 `四川话`）。留空使用默认 |
 
 **可选输入：**
 - `whisper_model` — 预加载的Whisper ASR模型
@@ -152,6 +154,7 @@ python install.py
 | keep_model_loaded | BOOLEAN | True | 保持模型加载 |
 | speaker_N_audio | AUDIO | 可选 | 说话人N的参考音频（1-10） |
 | speaker_N_ref_text | STRING | "" | 说话人N参考音频的转录文本 |
+| speaker_N_instruct | STRING | "" | 说话人N的方言/风格指令（如 `四川话`）。留空使用默认 |
 
 说话人输入根据 `num_speakers` 动态显示/隐藏（ComfyUI >= 0.8.1）。
 
@@ -212,6 +215,22 @@ OmniVoice的架构（Qwen3骨干）通过transformers支持的注意力后端有
 [Speaker_1]: 很高兴认识你！
 ```
 每个说话人需要连接对应的 `speaker_N_audio` 参考音频输入。
+
+## 方言/风格指令
+
+声音克隆、长文本和多说话人节点提供了 `instruct` 字段，用于指定方言或说话风格。模型默认使用标准普通话，通过此字段可以切换到地方方言。
+
+**示例：**
+| 输入 | 效果 |
+|------|------|
+| `四川话` | 四川方言 |
+| `陕西话` | 陕西方言 |
+| `东北话` | 东北方言 |
+| `广东话` | 粤语（以普通话风格发音） |
+
+留空则使用默认行为（中文文本默认标准普通话）。
+
+> **注意：** 此字段与声音设计节点的 `voice_instruct` 字段不同，后者用于控制性别、年龄、音调、口音等属性来合成全新的声音。
 
 ## 声音设计属性
 

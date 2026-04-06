@@ -119,6 +119,19 @@ def _speaker_inputs(count: int) -> list:
                 ),
             )
         )
+        inputs.append(
+            IO.String.Input(
+                f"speaker_{i}_instruct",
+                multiline=False,
+                default="",
+                optional=True,
+                tooltip=(
+                    f"Optional dialect/style instruction for speaker {i} "
+                    "(e.g., '四川话' for Sichuan dialect). "
+                    "Leave empty for default behaviour."
+                ),
+            )
+        )
     return inputs
 
 
@@ -435,6 +448,10 @@ if _V3:
                     if speaker_ref_text.strip():
                         gen_kwargs["ref_text"] = speaker_ref_text.strip()
 
+                    speaker_instruct = num_speakers.get(f"speaker_{speaker_idx + 1}_instruct", "")
+                    if speaker_instruct and speaker_instruct.strip():
+                        gen_kwargs["instruct"] = speaker_instruct.strip()
+
                     # Generate audio for this line
                     with torch.no_grad():
                         audio_list = omnivoice_model.generate(**gen_kwargs)
@@ -521,6 +538,18 @@ else:
                     "default": "",
                     "tooltip": f"Transcript of speaker {i}'s reference audio. Leave empty to auto-transcribe.",
                 })
+                optional_inputs[f"speaker_{i}_instruct"] = (
+                    "STRING",
+                    {
+                        "multiline": False,
+                        "default": "",
+                        "tooltip": (
+                            f"Optional dialect/style instruction for speaker {i} "
+                            "(e.g., '四川话' for Sichuan dialect). "
+                            "Leave empty for default behaviour."
+                        ),
+                    },
+                )
 
             return {
                 "required": {
@@ -720,7 +749,12 @@ else:
                     # Only add ref_text if provided - otherwise let OmniVoice use Whisper
                     if speaker_ref_text.strip():
                         gen_kwargs["ref_text"] = speaker_ref_text.strip()
-                    elif whisper_model is not None:
+
+                    speaker_instruct = kwargs.get(f"speaker_{speaker_idx + 1}_instruct", "")
+                    if speaker_instruct and speaker_instruct.strip():
+                        gen_kwargs["instruct"] = speaker_instruct.strip()
+
+                    if not speaker_ref_text.strip() and whisper_model is not None:
                         # Pre-loaded Whisper available - inject for this speaker
                         whisper_pipe = get_or_cache_whisper(whisper_model, model, device, dtype)
                         if whisper_pipe is not None:
