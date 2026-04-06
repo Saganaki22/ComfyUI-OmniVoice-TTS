@@ -12,7 +12,7 @@ Model weights are auto-downloaded from HuggingFace on first inference.
 Supports 600+ languages with zero-shot voice cloning and voice design.
 """
 
-__version__ = "0.3.4"
+__version__ = "0.3.41"
 
 import logging
 import sys
@@ -53,6 +53,13 @@ if _tc_broken or _tc is None or getattr(_tc, '__spec__', None) is None:
         _sub_mod.__spec__ = importlib.util.spec_from_loader(
             f'torchcodec.{_sub}', loader=None
         )
+        # Add dummy AudioDecoder so isinstance() checks in transformers
+        # don't crash — the check returns False and falls through to
+        # the soundfile path as intended.
+        if _sub == 'decoders':
+            class _AudioDecoder:
+                pass
+            _sub_mod.AudioDecoder = _AudioDecoder
         setattr(_tc_stub, _sub, _sub_mod)
         sys.modules[f'torchcodec.{_sub}'] = _sub_mod
     sys.modules['torchcodec'] = _tc_stub
