@@ -12,11 +12,12 @@ Model weights are auto-downloaded from HuggingFace on first inference.
 Supports 600+ languages with zero-shot voice cloning and voice design.
 """
 
-__version__ = "0.3.2"
+__version__ = "0.3.3"
 
 import logging
 import sys
 import types
+import importlib.util
 from pathlib import Path
 from typing import Any, Dict
 
@@ -28,20 +29,36 @@ from typing import Any, Dict
 # sys.modules *before* that import runs, transformers silently falls back to
 # soundfile/sox which OmniVoice already has.
 # ---------------------------------------------------------------------------
+_tc_broken = False
 if 'torchcodec' not in sys.modules:
     try:
         import torchcodec  # noqa: F401
     except Exception:
-        _tc_stub = types.ModuleType('torchcodec')
-        _tc_stub.__path__ = []  # pretend it's a package
-        for _sub in ('decoders', 'encoders', 'samplers', 'transforms', '_core'):
-            _sub_mod = types.ModuleType(f'torchcodec.{_sub}')
-            setattr(_tc_stub, _sub, _sub_mod)
-            sys.modules[f'torchcodec.{_sub}'] = _sub_mod
-        sys.modules['torchcodec'] = _tc_stub
-        logging.getLogger("OmniVoice").info(
-            "torchcodec blocked (incompatible PyTorch build) — using soundfile fallback"
+        _tc_broken = True
+
+# Replace with stub if the import failed or the module is non-functional.
+# On Windows with a broken DLL, import torchcodec may partially execute,
+# set itself in sys.modules with __spec__ = None, then raise — so the
+# except block above runs but sys.modules now holds a broken module.
+_tc = sys.modules.get('torchcodec')
+if _tc_broken or _tc is None or getattr(_tc, '__spec__', None) is None:
+    _tc_stub = types.ModuleType('torchcodec')
+    _tc_stub.__path__ = []
+    _tc_stub.__package__ = 'torchcodec'
+    _tc_stub.__spec__ = importlib.util.spec_from_loader(
+        'torchcodec', loader=None, origin='torchcodec'
+    )
+    for _sub in ('decoders', 'encoders', 'samplers', 'transforms', '_core'):
+        _sub_mod = types.ModuleType(f'torchcodec.{_sub}')
+        _sub_mod.__spec__ = importlib.util.spec_from_loader(
+            f'torchcodec.{_sub}', loader=None
         )
+        setattr(_tc_stub, _sub, _sub_mod)
+        sys.modules[f'torchcodec.{_sub}'] = _sub_mod
+    sys.modules['torchcodec'] = _tc_stub
+    logging.getLogger("OmniVoice").info(
+        "torchcodec blocked (incompatible PyTorch build) — using soundfile fallback"
+    )
 
 _HERE = Path(__file__).parent.resolve()
 
@@ -69,9 +86,14 @@ def _check_dependencies() -> tuple[bool, list[tuple[str, list[str]]]]:
     """
     try:
         import omnivoice
-    except Exception as e:
-        logger.error(f"Failed to import omnivoice: {e}")
+    except ImportError:
+        # Genuinely not installed
         return False, [("omnivoice", ["--no-deps"])]
+    except Exception as e:
+        # Installed but broken — reinstalling won't help, just warn
+        logger.error(f"omnivoice is installed but failed to import: {e}")
+        logger.error("Reinstalling will not fix this. Check the error above.")
+        return False, []
 
     # Sub-dependencies that ``pip install omnivoice --no-deps`` skips.
     missing: list[tuple[str, list[str]]] = []
@@ -153,7 +175,7 @@ if _deps_ready:
 
     except Exception as e:
         logger.error(f"Failed to register nodes: {e}", exc_info=True)
-else:
+elif _deps_missing:
     # Fallback: install exactly what's missing.
     # omnivoice itself missing  -> pip install omnivoice --no-deps
     # sub-dep missing/too-old   -> pip install <pkg> [--upgrade]
