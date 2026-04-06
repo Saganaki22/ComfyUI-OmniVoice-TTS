@@ -126,7 +126,8 @@ def main():
     print("[OmniVoice] Using --no-deps to protect your PyTorch installation")
 
     # First uninstall if exists (to ensure clean install with --no-deps)
-    run_cmd([sys.executable, "-m", "pip", "uninstall", "-y", "omnivoice"], timeout=60)
+    if is_installed("omnivoice"):
+        run_cmd([sys.executable, "-m", "pip", "uninstall", "-y", "omnivoice"], timeout=60)
 
     if pip_install("omnivoice", no_deps=True):
         print("[OmniVoice] omnivoice installed successfully")
@@ -144,6 +145,7 @@ def main():
         # (import_name, pip_name, description)
         ("soundfile", "soundfile", "Audio file I/O"),
         ("scipy", "scipy", "Scientific computing (required by librosa resampling)"),
+        ("lazy_loader", "lazy_loader", "Lazy loading utility (required by librosa)"),
         ("librosa", "librosa", "Audio processing"),
         ("sentencepiece", "sentencepiece", "Tokenization"),
         ("jieba", "jieba", "Chinese text segmentation"),
@@ -153,7 +155,7 @@ def main():
 
     # Packages safe to install with --no-deps (no transitive deps that
     # aren't already in a standard ComfyUI environment).
-    no_deps_packages = {"soundfile", "sentencepiece", "jieba", "scipy", "librosa", "soxr"}
+    no_deps_packages = {"soundfile", "sentencepiece", "jieba", "scipy", "lazy_loader", "librosa", "soxr"}
 
     for import_name, pip_name, description in extra_packages:
         if is_installed(import_name):

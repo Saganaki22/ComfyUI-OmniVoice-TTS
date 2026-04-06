@@ -5,6 +5,11 @@
 # pydub                       (imported by omnivoice at module level)
 # soundfile        --no-deps
 # scipy            --no-deps
+# lazy_loader      --no-deps  (required by librosa)
 # librosa          --no-deps
 # sentencepiece    --no-deps
 # jieba            --no-deps
+# soxr                       (audio resampling, required by transformers HiggsAudio tokenizer)
+# transformers               (>= 4.57, managed by ComfyUI — only upgraded if too old)
+# torch                      (managed by ComfyUI — NEVER touched by install.py)
+# torchaudio                 (managed by ComfyUI — NEVER touched by install.py)
