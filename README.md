@@ -51,8 +51,8 @@ If another package accidentally downgrades your PyTorch, see the [PyTorch Compat
 
 ## Nodes
 
-### 1. OmniVoice Longform TTS
-Long-form text-to-speech with smart chunking and optional voice cloning.
+<details>
+<summary><strong>1. OmniVoice Longform TTS</strong> — Long-form text-to-speech with smart chunking and optional voice cloning</summary>
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -82,8 +82,10 @@ Long-form text-to-speech with smart chunking and optional voice cloning.
 - `ref_audio` — Reference audio for voice cloning (3-15s optimal)
 - `whisper_model` — Pre-loaded Whisper ASR model
 
-### 2. OmniVoice Voice Clone TTS
-Clone a voice from reference audio.
+</details>
+
+<details>
+<summary><strong>2. OmniVoice Voice Clone TTS</strong> — Clone a voice from reference audio</summary>
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -112,8 +114,10 @@ Clone a voice from reference audio.
 **Optional Input:**
 - `whisper_model` — Pre-loaded Whisper from OmniVoice Whisper Loader
 
-### 3. OmniVoice Voice Design TTS
-Design voices from text descriptions. No reference audio needed.
+</details>
+
+<details>
+<summary><strong>3. OmniVoice Voice Design TTS</strong> — Design voices from text descriptions, no reference audio needed</summary>
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -136,8 +140,10 @@ Design voices from text descriptions. No reference audio needed.
 | postprocess_output | BOOLEAN | True | Post-process generated audio (remove long silences) |
 | keep_model_loaded | BOOLEAN | True | Keep model in memory |
 
-### 4. OmniVoice Multi-Speaker TTS
-Generate dialogue between multiple speakers using `[Speaker_N]:` tags.
+</details>
+
+<details>
+<summary><strong>4. OmniVoice Multi-Speaker TTS</strong> — Generate dialogue between multiple speakers using <code>[Speaker_N]:</code> tags</summary>
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -166,8 +172,10 @@ Generate dialogue between multiple speakers using `[Speaker_N]:` tags.
 
 Speaker inputs dynamically show/hide based on `num_speakers` (ComfyUI >= 0.8.1).
 
-### 5. OmniVoice Whisper Loader
-Pre-load Whisper ASR model for auto-transcription. Avoid re-downloading on each run.
+</details>
+
+<details>
+<summary><strong>5. OmniVoice Whisper Loader</strong> — Pre-load Whisper ASR model for auto-transcription</summary>
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -176,6 +184,8 @@ Pre-load Whisper ASR model for auto-transcription. Avoid re-downloading on each 
 | dtype | COMBO | auto | `auto`, `bf16`, `fp16`, `fp32` |
 
 **Auto-download:** Select models with "(auto-download)" suffix to download on first use.
+
+</details>
 
 ## Generation Parameters Guide
 

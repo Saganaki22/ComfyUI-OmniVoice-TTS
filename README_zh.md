@@ -43,8 +43,8 @@ python install.py
 
 ## 节点
 
-### 1. OmniVoice Longform TTS
-长文本语音合成，智能分句，可选声音克隆。
+<details>
+<summary><strong>1. OmniVoice Longform TTS</strong> — 长文本语音合成，智能分句，可选声音克隆</summary>
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
@@ -74,8 +74,10 @@ python install.py
 - `ref_audio` — 声音克隆参考音频（3-15秒最佳）
 - `whisper_model` — 预加载的Whisper ASR模型
 
-### 2. OmniVoice Voice Clone TTS
-从参考音频克隆声音。
+</details>
+
+<details>
+<summary><strong>2. OmniVoice Voice Clone TTS</strong> — 从参考音频克隆声音</summary>
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
@@ -104,8 +106,10 @@ python install.py
 **可选输入：**
 - `whisper_model` — 预加载的Whisper ASR模型
 
-### 3. OmniVoice Voice Design TTS
-通过文字描述设计声音。无需参考音频。
+</details>
+
+<details>
+<summary><strong>3. OmniVoice Voice Design TTS</strong> — 通过文字描述设计声音，无需参考音频</summary>
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
@@ -128,8 +132,10 @@ python install.py
 | postprocess_output | BOOLEAN | True | 后处理生成音频 |
 | keep_model_loaded | BOOLEAN | True | 保持模型加载 |
 
-### 4. OmniVoice Multi-Speaker TTS
-使用 `[Speaker_N]:` 标签生成多说话人对白。
+</details>
+
+<details>
+<summary><strong>4. OmniVoice Multi-Speaker TTS</strong> — 使用 <code>[Speaker_N]:</code> 标签生成多说话人对白</summary>
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
@@ -158,8 +164,10 @@ python install.py
 
 说话人输入根据 `num_speakers` 动态显示/隐藏（ComfyUI >= 0.8.1）。
 
-### 5. OmniVoice Whisper Loader
-预加载Whisper ASR模型，避免每次重新下载。
+</details>
+
+<details>
+<summary><strong>5. OmniVoice Whisper Loader</strong> — 预加载Whisper ASR模型，避免每次重新下载</summary>
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
@@ -168,6 +176,8 @@ python install.py
 | dtype | COMBO | auto | `auto`、`bf16`、`fp16`、`fp32` |
 
 **自动下载：** 选择带"(auto-download)"后缀的模型可在首次使用时自动下载。
+
+</details>
 
 ## 生成参数指南
 
