@@ -43,6 +43,59 @@ logger = logging.getLogger("OmniVoice")
 
 OMNIVOICE_SAMPLE_RATE = 24000
 
+def _format_srt_timestamp(seconds: float) -> str:
+    """Convert seconds to SRT timestamp format: HH:MM:SS,mmm"""
+    millis = int(round(seconds * 1000))
+
+    hours = millis // 3_600_000
+    millis %= 3_600_000
+    minutes = millis // 60_000
+    millis %= 60_000
+    secs = millis // 1000
+    millis %= 1000
+
+    return f"{hours:02}:{minutes:02}:{secs:02},{millis:03}"
+
+def _wrap_text(text: str, max_width: int = 50) -> str:
+    """Wrap subtitle text to avoid stretching across the screen like a runaway scarf."""
+    if not text or len(text) <= max_width:
+        return text
+
+    words = text.split()
+    lines = []
+    current_line = []
+    current_length = 0
+
+    for word in words:
+        projected = current_length + len(word) + (1 if current_line else 0)
+
+        if projected > max_width:
+            lines.append(" ".join(current_line))
+            current_line = [word]
+            current_length = len(word)
+        else:
+            current_line.append(word)
+            current_length = projected
+
+    if current_line:
+        lines.append(" ".join(current_line))
+
+    return "\n".join(lines)
+
+def _segments_to_srt(segments) -> str:
+    """Convert timeline segments into SRT text."""
+    lines = []
+
+    for idx, seg in enumerate(segments, start=1):
+        start = _format_srt_timestamp(seg["start"])
+        end = _format_srt_timestamp(seg["end"])
+        text = _wrap_text(seg["text"].strip())
+
+        lines.append(
+            f"{idx}\n{start} --> {end}\n{text}\n"
+        )
+
+    return "\n".join(lines)
 
 def _is_cjk(char: str) -> bool:
     """Check if a character belongs to a script that doesn't use spaces between words."""
@@ -429,8 +482,8 @@ class OmniVoiceLongformTTS:
             },
         }
 
-    RETURN_TYPES = ("AUDIO",)
-    RETURN_NAMES = ("audio",)
+    RETURN_TYPES = ("AUDIO", "STRING")
+    RETURN_NAMES = ("audio", "srt")
     FUNCTION = "generate"
     CATEGORY = "OmniVoice"
     DESCRIPTION = (
@@ -474,7 +527,7 @@ class OmniVoiceLongformTTS:
         omnivoice_model, _ = get_or_load_model(
             model, device, dtype, attention, keep_model_loaded
         )
-
+        
         # Set random seed early so Whisper transcription is also seeded
         actual_seed = seed if seed != 0 else torch.randint(0, 2**31, (1,)).item()
         torch.manual_seed(actual_seed)
@@ -548,6 +601,10 @@ class OmniVoiceLongformTTS:
         result = None
         auto_ref_audio_tensor = None
         first_chunk_text = ""
+        
+        subtitle_segments = []
+        current_time = 0.0
+        subtitle_gap = 0.05  # tiny gap between subtitle blocks
 
         try:
             for chunk_idx, chunk_text in enumerate(chunks):
@@ -600,6 +657,21 @@ class OmniVoiceLongformTTS:
                 audio_tensor = audio_list[0]
                 audio_np = audio_tensor.squeeze(0).cpu().numpy()
                 audio_chunks.append(audio_np)
+                
+                # Build subtitle timing directly from generated chunk durations.
+                # This avoids Whisper timestamp drift, overlaps, and tiny time vortices.
+                chunk_duration = len(audio_np) / OMNIVOICE_SAMPLE_RATE
+
+                start_time = current_time
+                end_time = current_time + chunk_duration
+
+                subtitle_segments.append({
+                    "start": start_time,
+                    "end": end_time,
+                    "text": chunk_text.strip(),
+                })
+
+                current_time = end_time + subtitle_gap
 
                 # Capture first chunk audio as reference for auto-voice consistency
                 if not use_voice_clone and chunk_idx == 0 and len(chunks) > 1:
@@ -624,9 +696,12 @@ class OmniVoiceLongformTTS:
 
             result = numpy_audio_to_comfy(audio_out, OMNIVOICE_SAMPLE_RATE)
 
+            # Convert chunk-derived timings into an SRT string
+            srt_output = _segments_to_srt(subtitle_segments)
+
             logger.info(
                 f"Generated {len(audio_out) / OMNIVOICE_SAMPLE_RATE:.2f}s of audio "
-                f"at {OMNIVOICE_SAMPLE_RATE}Hz"
+                f"at {OMNIVOICE_SAMPLE_RATE}Hz with {len(subtitle_segments)} subtitle segments"
             )
 
         finally:
@@ -639,7 +714,7 @@ class OmniVoiceLongformTTS:
 
         if result is None:
             raise RuntimeError("Generation failed — see logs above.")
-        return (result,)
+        return (result, srt_output)
 
     def _check_interrupt(self):
         """Check if processing was interrupted."""
