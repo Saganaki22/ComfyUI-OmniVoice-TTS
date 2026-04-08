@@ -6,6 +6,7 @@
 
 - [START HERE — Only the Whisper node loads, all other nodes are missing](#start-here--only-the-whisper-node-loads-all-other-nodes-are-missing)
 - [Upgrading from omnivoice 0.1.1 to 0.1.2](#upgrading-from-omnivoice-011-to-012)
+- [Upgrading to omnivoice 0.1.3](#upgrading-to-omnivoice-013)
 - [No module named pip](#no-module-named-pip)
 - [PyTorch CUDA broken after install](#pytorch-cuda-broken-after-install)
 - [Transformers version conflicts](#transformers-version-conflicts)
@@ -147,7 +148,37 @@ pip install soxr
 
 ---
 
-## No module named pip
+## Upgrading to omnivoice 0.1.3
+
+omnivoice `0.1.3` was released on April 7, 2026. If you installed the ComfyUI-OmniVoice-TTS node before this date, your `omnivoice` package is on `0.1.2` or earlier and you should upgrade to get the latest fixes and features.
+
+**If you installed via ComfyUI Manager:** Run "Update" on the node in Manager, then restart ComfyUI.
+
+**If you installed manually or want to update the underlying omnivoice package yourself:**
+
+> ⚠️ **You must use `--no-deps`**. The omnivoice pip package declares `torch==2.8.*` as a hard dependency. Installing without `--no-deps` will downgrade your PyTorch to a CPU-only version and break ComfyUI's GPU acceleration.
+
+Windows (venv):
+```bash
+C:\Users\<you>\Documents\ComfyUI\venv\Scripts\pip install omnivoice==0.1.3 --no-deps
+```
+
+Windows (portable / embedded Python):
+```bash
+C:\ComfyUI\python_embeded\python.exe -m pip install omnivoice==0.1.3 --no-deps
+```
+
+Linux / macOS:
+```bash
+path/to/ComfyUI/venv/bin/pip install omnivoice==0.1.3 --no-deps
+```
+
+Using uv:
+```bash
+uv pip install omnivoice==0.1.3 --no-deps
+```
+
+Then **restart ComfyUI**.
 
 **Symptom:**
 ```

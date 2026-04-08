@@ -6,6 +6,7 @@
 
 - [从这里开始 — 只有 Whisper 节点加载，其他节点全部缺失](#从这里开始--只有-whisper-节点加载其他节点全部缺失)
 - [从 omnivoice 0.1.1 升级到 0.1.2](#从-omnivoice-011-升级到-012)
+- [升级到 omnivoice 0.1.3](#升级到-omnivoice-013)
 - [No module named pip](#no-module-named-pip)
 - [安装后 PyTorch CUDA 损坏](#安装后-pytorch-cuda-损坏)
 - [Transformers 版本冲突](#transformers-版本冲突)
@@ -147,7 +148,37 @@ pip install soxr
 
 ---
 
-## No module named pip
+## 升级到 omnivoice 0.1.3
+
+omnivoice `0.1.3` 于 2026 年 4 月 7 日发布。如果你在此日期之前安装了 ComfyUI-OmniVoice-TTS 节点，你的 `omnivoice` 包版本为 `0.1.2` 或更早，建议升级以获取最新的修复和功能。
+
+**如果通过 ComfyUI Manager 安装：** 在 Manager 中对该节点运行"Update"，然后重启 ComfyUI。
+
+**如果手动安装或想自行更新 omnivoice 包：**
+
+> ⚠️ **必须使用 `--no-deps`**。omnivoice pip 包声明了 `torch==2.8.*` 作为硬依赖。不使用 `--no-deps` 安装会将 PyTorch 降级为仅 CPU 版本，破坏 ComfyUI 的 GPU 加速。
+
+Windows（venv）：
+```bash
+C:\Users\<你>\Documents\ComfyUI\venv\Scripts\pip install omnivoice==0.1.3 --no-deps
+```
+
+Windows（便携版 / 内嵌 Python）：
+```bash
+C:\ComfyUI\python_embeded\python.exe -m pip install omnivoice==0.1.3 --no-deps
+```
+
+Linux / macOS：
+```bash
+path/to/ComfyUI/venv/bin/pip install omnivoice==0.1.3 --no-deps
+```
+
+使用 uv：
+```bash
+uv pip install omnivoice==0.1.3 --no-deps
+```
+
+然后**重启 ComfyUI**。
 
 **症状：**
 ```
