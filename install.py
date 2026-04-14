@@ -13,6 +13,7 @@ to CPU-only on many systems, breaking ComfyUI's GPU acceleration.
 We work around this by installing omnivoice with --no-deps.
 """
 
+import importlib
 import subprocess
 import sys
 

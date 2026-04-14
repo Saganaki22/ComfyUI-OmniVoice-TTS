@@ -13,6 +13,7 @@ import torch
 from .loader import (
     get_model_names,
     numpy_audio_to_comfy,
+    to_numpy_audio,
 )
 from .model_cache import (
     cancel_event,
@@ -326,8 +327,7 @@ class OmniVoiceVoiceDesignTTS:
                 pbar.update_absolute(2, 3)
 
             # Convert to ComfyUI format
-            audio_tensor = audio_list[0]  # (1, T)
-            audio_np = audio_tensor.squeeze(0).cpu().numpy()
+            audio_np = to_numpy_audio(audio_list[0])
 
             result = numpy_audio_to_comfy(audio_np, OMNIVOICE_SAMPLE_RATE)
 

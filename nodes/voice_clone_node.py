@@ -12,6 +12,7 @@ import torch
 from .loader import (
     get_model_names,
     numpy_audio_to_comfy,
+    to_numpy_audio,
     comfy_audio_to_numpy,
 )
 from .model_cache import (
@@ -426,7 +427,7 @@ class OmniVoiceVoiceCloneTTS:
                         ) from e
                     raise
 
-            audio_np = audio_list[0].squeeze(0).cpu().numpy()
+            audio_np = to_numpy_audio(audio_list[0])
             result = numpy_audio_to_comfy(audio_np, OMNIVOICE_SAMPLE_RATE)
 
             logger.info(

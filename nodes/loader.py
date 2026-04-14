@@ -232,6 +232,26 @@ def resolve_precision(precision_choice: str, device: str) -> torch.dtype:
     return torch.float32
 
 
+def to_numpy_audio(audio) -> np.ndarray:
+    """Convert model output to numpy array, handling both tensor and numpy input.
+
+    omnivoice.generate() may return torch tensors or numpy arrays depending on
+    version. This normalizes the output to a 1-D numpy array of samples.
+    """
+    import torch
+
+    if isinstance(audio, torch.Tensor):
+        audio = audio.detach().cpu().numpy()
+    audio = np.asarray(audio, dtype=np.float32)
+    # Squeeze leading batch dim if present (1, T) -> (T,)
+    if audio.ndim >= 2 and audio.shape[0] == 1:
+        audio = audio.squeeze(0)
+    # Ensure 1-D: (C, T) -> flatten to (T,) for mono TTS output
+    if audio.ndim > 1:
+        audio = audio.reshape(-1)
+    return audio
+
+
 def numpy_audio_to_comfy(audio_np: np.ndarray, sample_rate: int) -> dict:
     """Convert numpy audio array to ComfyUI AUDIO format.
 

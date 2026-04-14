@@ -17,6 +17,7 @@ from .loader import (
     get_model_names,
     numpy_audio_to_comfy,
     comfy_audio_to_numpy,
+    to_numpy_audio,
 )
 from .model_cache import (
     cancel_event,
@@ -472,8 +473,7 @@ if _V3:
                                 ) from e
                             raise
 
-                    audio_tensor = audio_list[0]  # (1, T)
-                    audio_np = audio_tensor.squeeze(0).cpu().numpy()
+                    audio_np = to_numpy_audio(audio_list[0])
                     audio_turns.append(audio_np)
 
                     if pbar:
@@ -797,8 +797,7 @@ else:
                                 ) from e
                             raise
 
-                    audio_tensor = audio_list[0]  # (1, T)
-                    audio_np = audio_tensor.squeeze(0).cpu().numpy()
+                    audio_np = to_numpy_audio(audio_list[0])
                     audio_turns.append(audio_np)
 
                     if pbar:

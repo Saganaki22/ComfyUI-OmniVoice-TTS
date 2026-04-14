@@ -15,6 +15,7 @@ from .loader import (
     get_model_names,
     numpy_audio_to_comfy,
     comfy_audio_to_numpy,
+    to_numpy_audio,
 )
 from .whisper_loader import find_local_whisper_model, load_whisper_pipeline
 from .model_cache import (
@@ -597,8 +598,7 @@ class OmniVoiceLongformTTS:
                             ) from e
                         raise
 
-                audio_tensor = audio_list[0]
-                audio_np = audio_tensor.squeeze(0).cpu().numpy()
+                audio_np = to_numpy_audio(audio_list[0])
                 audio_chunks.append(audio_np)
 
                 # Capture first chunk audio as reference for auto-voice consistency
