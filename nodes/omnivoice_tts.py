@@ -16,6 +16,7 @@ from .loader import (
     numpy_audio_to_comfy,
     comfy_audio_to_numpy,
     to_numpy_audio,
+    manual_seed_all,
 )
 from .whisper_loader import find_local_whisper_model, load_whisper_pipeline
 from .model_cache import (
@@ -275,10 +276,10 @@ class OmniVoiceLongformTTS:
                     },
                 ),
                 "device": (
-                    ["auto", "cuda", "cpu", "mps"],
+                    ["auto", "cuda", "cpu", "mps", "xpu"],
                     {
                         "default": "auto",
-                        "tooltip": "Compute device. 'auto' picks CUDA > MPS > CPU.",
+                        "tooltip": "Compute device. 'auto' picks CUDA > MPS > XPU > CPU.",
                     },
                 ),
                 "dtype": (
@@ -286,7 +287,7 @@ class OmniVoiceLongformTTS:
                     {
                         "default": "auto",
                         "tooltip": (
-                            "Model precision. 'auto' picks bf16 for CUDA (Ampere+), "
+                            "Model precision. 'auto' picks bf16 for CUDA (Ampere+) / XPU, "
                             "fp16 for older CUDA/MPS, fp32 for CPU."
                         ),
                     },
@@ -478,9 +479,7 @@ class OmniVoiceLongformTTS:
 
         # Set random seed early so Whisper transcription is also seeded
         actual_seed = seed if seed != 0 else torch.randint(0, 2**31, (1,)).item()
-        torch.manual_seed(actual_seed)
-        if torch.cuda.is_available():
-            torch.cuda.manual_seed(actual_seed)
+        manual_seed_all(actual_seed)
 
         use_voice_clone = ref_audio is not None
 

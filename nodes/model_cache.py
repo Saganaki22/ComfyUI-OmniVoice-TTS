@@ -255,6 +255,8 @@ def _do_unload() -> None:
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
         torch.cuda.synchronize()
+    if hasattr(torch, "xpu") and torch.xpu.is_available():
+        torch.xpu.empty_cache()
     gc.collect()
     logger.info("Model unloaded and VRAM freed.")
 
@@ -304,6 +306,8 @@ def offload_model_to_cpu() -> None:
             _offloaded = True
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
+            if hasattr(torch, "xpu") and torch.xpu.is_available():
+                torch.xpu.empty_cache()
             gc.collect()
             logger.info("Model offloaded to CPU. VRAM freed.")
         except Exception as e:
@@ -455,6 +459,8 @@ def unload_whisper() -> None:
             gc.collect()
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
+            if hasattr(torch, "xpu") and torch.xpu.is_available():
+                torch.xpu.empty_cache()
             gc.collect()
             logger.info("Whisper ASR model unloaded and VRAM freed.")
 
@@ -468,6 +474,8 @@ def offload_whisper_to_cpu() -> None:
             _whisper_to_cpu(_cached_whisper)
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
+            if hasattr(torch, "xpu") and torch.xpu.is_available():
+                torch.xpu.empty_cache()
             gc.collect()
             logger.info("Whisper ASR model offloaded to CPU. VRAM freed.")
         except Exception as e:
@@ -514,6 +522,8 @@ def get_or_cache_whisper(whisper_input: dict | None, model_name: str, device: st
             gc.collect()
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
+            if hasattr(torch, "xpu") and torch.xpu.is_available():
+                torch.xpu.empty_cache()
 
         # Use the pipeline from the input (already loaded by Whisper Loader node).
         # IMPORTANT: The same pipeline object is shared with ComfyUI's node

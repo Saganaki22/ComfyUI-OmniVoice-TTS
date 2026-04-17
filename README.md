@@ -64,7 +64,7 @@ If another package accidentally downgrades your PyTorch, see the [PyTorch Compat
 | t_shift | FLOAT | 0.1 | Time-step shift for noise schedule (0-1) |
 | speed | FLOAT | 1.0 | Speaking speed (0.5-2.0, >1=faster) |
 | duration | FLOAT | 0.0 | Fixed duration in seconds (0=auto) |
-| device | COMBO | auto | `auto`, `cuda`, `cpu`, `mps` |
+| device | COMBO | auto | `auto`, `cuda`, `cpu`, `mps`, `xpu` |
 | dtype | COMBO | auto | `auto`, `bf16`, `fp16`, `fp32` |
 | attention | COMBO | auto | `auto`, `eager`, `sage_attention` |
 | seed | INT | 0 | Random seed (0=random) |
@@ -98,7 +98,7 @@ If another package accidentally downgrades your PyTorch, see the [PyTorch Compat
 | t_shift | FLOAT | 0.1 | Time-step shift for noise schedule (0-1) |
 | speed | FLOAT | 1.0 | Speaking speed (0.5-2.0) |
 | duration | FLOAT | 0.0 | Fixed duration in seconds (0=auto) |
-| device | COMBO | auto | `auto`, `cuda`, `cpu`, `mps` |
+| device | COMBO | auto | `auto`, `cuda`, `cpu`, `mps`, `xpu` |
 | dtype | COMBO | auto | `auto`, `bf16`, `fp16`, `fp32` |
 | attention | COMBO | auto | `auto`, `eager`, `sage_attention` |
 | seed | INT | 0 | Random seed (0=random) |
@@ -129,7 +129,7 @@ If another package accidentally downgrades your PyTorch, see the [PyTorch Compat
 | t_shift | FLOAT | 0.1 | Time-step shift for noise schedule (0-1) |
 | speed | FLOAT | 1.0 | Speaking speed (0.5-2.0) |
 | duration | FLOAT | 0.0 | Fixed duration in seconds (0=auto) |
-| device | COMBO | auto | `auto`, `cuda`, `cpu`, `mps` |
+| device | COMBO | auto | `auto`, `cuda`, `cpu`, `mps`, `xpu` |
 | dtype | COMBO | auto | `auto`, `bf16`, `fp16`, `fp32` |
 | attention | COMBO | auto | `auto`, `eager`, `sage_attention` |
 | seed | INT | 0 | Random seed (0=random) |
@@ -155,7 +155,7 @@ If another package accidentally downgrades your PyTorch, see the [PyTorch Compat
 | t_shift | FLOAT | 0.1 | Time-step shift for noise schedule (0-1) |
 | speed | FLOAT | 1.0 | Speaking speed for all speakers |
 | pause_between_speakers | FLOAT | 0.3 | Silence between speakers (seconds) |
-| device | COMBO | auto | `auto`, `cuda`, `cpu`, `mps` |
+| device | COMBO | auto | `auto`, `cuda`, `cpu`, `mps`, `xpu` |
 | dtype | COMBO | auto | `auto`, `bf16`, `fp16`, `fp32` |
 | attention | COMBO | auto | `auto`, `eager`, `sage_attention` |
 | position_temperature | FLOAT | 5.0 | Mask-position temperature (0=greedy) |

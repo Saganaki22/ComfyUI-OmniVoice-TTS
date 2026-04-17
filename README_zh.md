@@ -56,7 +56,7 @@ python install.py
 | t_shift | FLOAT | 0.1 | 噪声调度时间步偏移（0-1） |
 | speed | FLOAT | 1.0 | 语速（0.5-2.0，>1=加快） |
 | duration | FLOAT | 0.0 | 固定时长秒数（0=自动） |
-| device | COMBO | auto | `auto`、`cuda`、`cpu`、`mps` |
+| device | COMBO | auto | `auto`、`cuda`、`cpu`、`mps`、`xpu` |
 | dtype | COMBO | auto | `auto`、`bf16`、`fp16`、`fp32` |
 | attention | COMBO | auto | `auto`、`eager`、`sage_attention` |
 | seed | INT | 0 | 随机种子（0=随机） |
@@ -90,7 +90,7 @@ python install.py
 | t_shift | FLOAT | 0.1 | 噪声调度时间步偏移（0-1） |
 | speed | FLOAT | 1.0 | 语速（0.5-2.0） |
 | duration | FLOAT | 0.0 | 固定时长秒数（0=自动） |
-| device | COMBO | auto | `auto`、`cuda`、`cpu`、`mps` |
+| device | COMBO | auto | `auto`、`cuda`、`cpu`、`mps`、`xpu` |
 | dtype | COMBO | auto | `auto`、`bf16`、`fp16`、`fp32` |
 | attention | COMBO | auto | `auto`、`eager`、`sage_attention` |
 | seed | INT | 0 | 随机种子（0=随机） |
@@ -121,7 +121,7 @@ python install.py
 | t_shift | FLOAT | 0.1 | 噪声调度时间步偏移（0-1） |
 | speed | FLOAT | 1.0 | 语速（0.5-2.0） |
 | duration | FLOAT | 0.0 | 固定时长秒数（0=自动） |
-| device | COMBO | auto | `auto`、`cuda`、`cpu`、`mps` |
+| device | COMBO | auto | `auto`、`cuda`、`cpu`、`mps`、`xpu` |
 | dtype | COMBO | auto | `auto`、`bf16`、`fp16`、`fp32` |
 | attention | COMBO | auto | `auto`、`eager`、`sage_attention` |
 | seed | INT | 0 | 随机种子（0=随机） |
@@ -147,7 +147,7 @@ python install.py
 | t_shift | FLOAT | 0.1 | 噪声调度时间步偏移（0-1） |
 | speed | FLOAT | 1.0 | 所有说话人的语速 |
 | pause_between_speakers | FLOAT | 0.3 | 说话人间静音秒数 |
-| device | COMBO | auto | `auto`、`cuda`、`cpu`、`mps` |
+| device | COMBO | auto | `auto`、`cuda`、`cpu`、`mps`、`xpu` |
 | dtype | COMBO | auto | `auto`、`bf16`、`fp16`、`fp32` |
 | attention | COMBO | auto | `auto`、`eager`、`sage_attention` |
 | position_temperature | FLOAT | 5.0 | 掩码位置选择温度（0=贪心） |

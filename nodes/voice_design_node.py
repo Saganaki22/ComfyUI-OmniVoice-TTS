@@ -14,6 +14,7 @@ from .loader import (
     get_model_names,
     numpy_audio_to_comfy,
     to_numpy_audio,
+    manual_seed_all,
 )
 from .model_cache import (
     cancel_event,
@@ -143,10 +144,10 @@ class OmniVoiceVoiceDesignTTS:
                     },
                 ),
                 "device": (
-                    ["auto", "cuda", "cpu", "mps"],
+                    ["auto", "cuda", "cpu", "mps", "xpu"],
                     {
                         "default": "auto",
-                        "tooltip": "Compute device. 'auto' picks CUDA > MPS > CPU.",
+                        "tooltip": "Compute device. 'auto' picks CUDA > MPS > XPU > CPU.",
                     },
                 ),
                 "dtype": (
@@ -294,9 +295,7 @@ class OmniVoiceVoiceDesignTTS:
 
         # Set random seed
         actual_seed = seed if seed != 0 else torch.randint(0, 2**31, (1,)).item()
-        torch.manual_seed(actual_seed)
-        if torch.cuda.is_available():
-            torch.cuda.manual_seed(actual_seed)
+        manual_seed_all(actual_seed)
 
         self._check_interrupt()
 

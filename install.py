@@ -75,7 +75,7 @@ def check_torch():
     try:
         import torch
         version = torch.__version__
-        has_cuda = torch.cuda.is_available()
+        has_cuda = torch.cuda.is_available() or (hasattr(torch, "xpu") and torch.xpu.is_available())
         return version, has_cuda
     except ImportError:
         return None, False

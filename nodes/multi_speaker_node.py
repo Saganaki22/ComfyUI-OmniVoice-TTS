@@ -18,6 +18,7 @@ from .loader import (
     numpy_audio_to_comfy,
     comfy_audio_to_numpy,
     to_numpy_audio,
+    manual_seed_all,
 )
 from .model_cache import (
     cancel_event,
@@ -395,9 +396,7 @@ if _V3:
 
             # Set random seed
             actual_seed = seed if seed != 0 else torch.randint(0, 2**31, (1,)).item()
-            torch.manual_seed(actual_seed)
-            if torch.cuda.is_available():
-                torch.cuda.manual_seed(actual_seed)
+            manual_seed_all(actual_seed)
 
             total_steps = len(dialogue_lines) + 1
             pbar = ProgressBar(total_steps) if _PBAR else None
@@ -614,7 +613,7 @@ else:
                         "default": 0.3, "min": 0.0, "max": 2.0, "step": 0.1,
                         "tooltip": "Seconds of silence between speakers.",
                     }),
-                    "device": (["auto", "cuda", "cpu", "mps"], {"default": "auto"}),
+                    "device": (["auto", "cuda", "cpu", "mps", "xpu"], {"default": "auto"}),
                     "dtype": (["auto", "bf16", "fp16", "fp32"], {"default": "auto"}),
                     "attention": (["auto", "eager", "sage_attention"], {"default": "auto"}),
                     "position_temperature": ("FLOAT", {
@@ -709,9 +708,7 @@ else:
 
             # Set random seed
             actual_seed = seed if seed != 0 else torch.randint(0, 2**31, (1,)).item()
-            torch.manual_seed(actual_seed)
-            if torch.cuda.is_available():
-                torch.cuda.manual_seed(actual_seed)
+            manual_seed_all(actual_seed)
 
             total_steps = len(dialogue_lines) + 1
             pbar = ProgressBar(total_steps) if _PBAR else None

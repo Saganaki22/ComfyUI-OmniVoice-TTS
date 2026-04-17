@@ -183,7 +183,12 @@ def load_whisper_pipeline(model_name: str, device: str = "auto", dtype: str = "a
 
     # Resolve device
     if device == "auto":
-        device_str = "cuda" if torch.cuda.is_available() else "cpu"
+        if torch.cuda.is_available():
+            device_str = "cuda"
+        elif hasattr(torch, "xpu") and torch.xpu.is_available():
+            device_str = "xpu"
+        else:
+            device_str = "cpu"
     else:
         device_str = device
 
@@ -196,6 +201,8 @@ def load_whisper_pipeline(model_name: str, device: str = "auto", dtype: str = "a
                 asr_dtype = torch.bfloat16 if major >= 8 else torch.float16
             else:
                 asr_dtype = torch.float16
+        elif device_str == "xpu":
+            asr_dtype = torch.bfloat16
         else:
             asr_dtype = torch.float32
     elif dtype == "bf16":

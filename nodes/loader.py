@@ -189,15 +189,39 @@ def _strip_auto_download_suffix(name: str) -> str:
     return name
 
 
+def _is_xpu_available() -> bool:
+    """Check if Intel XPU is available."""
+    return hasattr(torch, "xpu") and torch.xpu.is_available()
+
+
+def manual_seed_all(seed: int) -> None:
+    """Set random seed on all available accelerators."""
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+    if _is_xpu_available():
+        torch.xpu.manual_seed(seed)
+
+
+def empty_cache() -> None:
+    """Free unused GPU memory on all available accelerators."""
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    if _is_xpu_available():
+        torch.xpu.empty_cache()
+
+
 def _supports_bfloat16() -> bool:
     """Check if the GPU supports bfloat16."""
-    if not torch.cuda.is_available():
-        return False
-    try:
-        major, _ = torch.cuda.get_device_capability()
-        return major >= 8
-    except Exception:
-        return False
+    if torch.cuda.is_available():
+        try:
+            major, _ = torch.cuda.get_device_capability()
+            return major >= 8
+        except Exception:
+            return False
+    if _is_xpu_available():
+        return True
+    return False
 
 
 def resolve_device(device_choice: str) -> Tuple[str, Optional[torch.dtype]]:
@@ -207,7 +231,9 @@ def resolve_device(device_choice: str) -> Tuple[str, Optional[torch.dtype]]:
             return "cuda", None
         if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
             return "mps", None
-        logger.warning("No CUDA or MPS GPU detected — falling back to CPU.")
+        if _is_xpu_available():
+            return "xpu", None
+        logger.warning("No CUDA, MPS, or XPU GPU detected — falling back to CPU.")
         return "cpu", None
     return device_choice, None
 
@@ -217,8 +243,8 @@ def resolve_precision(precision_choice: str, device: str) -> torch.dtype:
     if precision_choice == "auto":
         if device == "cuda":
             return torch.bfloat16 if _supports_bfloat16() else torch.float16
-        elif device == "mps":
-            return torch.float16
+        elif device in ("mps", "xpu"):
+            return torch.bfloat16 if device == "xpu" else torch.float16
         return torch.float32
     if precision_choice == "bf16":
         if device == "cuda" and not _supports_bfloat16():
@@ -384,7 +410,7 @@ def load_model(
 
     Args:
         model_name: HuggingFace model name or local folder name
-        device: Device choice ("auto", "cuda", "cpu", "mps")
+        device: Device choice ("auto", "cuda", "cpu", "mps", "xpu")
         precision: Precision choice ("auto", "bf16", "fp16", "fp32")
         attention: Attention implementation ("auto", "eager", "sage_attention")
 
