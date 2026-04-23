@@ -27,6 +27,7 @@
 - **Auto-Download** — Models download automatically from HuggingFace on first use
 - **Whisper ASR Caching** — Pre-load Whisper to avoid re-downloading on each run
 - **VRAM Efficient** — Automatic CPU offload, VBAR/aimdo integration, smart cache invalidation
+- **LoRA Training** — Fine-tune OmniVoice on your own voice data using PEFT LoRA with sequence packing and torch.compile
 
 https://github.com/user-attachments/assets/b9c75048-915a-4993-9169-ddb1d2b28f41
 
@@ -184,6 +185,60 @@ Speaker inputs dynamically show/hide based on `num_speakers` (ComfyUI >= 0.8.1).
 | dtype | COMBO | auto | `auto`, `bf16`, `fp16`, `fp32` |
 
 **Auto-download:** Select models with "(auto-download)" suffix to download on first use.
+
+</details>
+
+<details>
+<summary><strong>6. OmniVoice Train Config</strong> — Configure LoRA training hyperparameters</summary>
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| learning_rate | FLOAT | 5e-5 | Learning rate for the optimizer |
+| lora_rank | INT | 32 | Rank (dimension) of the LoRA adapter |
+| lora_alpha | INT | 16 | Alpha scaling factor for LoRA |
+| lora_dropout | FLOAT | 0.0 | Dropout probability for LoRA layers |
+| warmup_steps | INT | 100 | Number of warmup steps for the LR scheduler |
+| grad_accum_steps | INT | 1 | Gradient accumulation steps before weight update |
+| weight_decay | FLOAT | 0.01 | Weight decay for regularization |
+| target_modules | STRING | q_proj,k_proj,v_proj,o_proj | Comma-separated target modules in Qwen3 backbone |
+| sequence_packing | BOOLEAN | False | Pack multiple samples into one sequence (recommended) |
+| batch_tokens | INT | 4096 | Max token length per packed sequence (4096 ~24GB VRAM) |
+| torch_compile | BOOLEAN | False | Compile model for faster training (recommended with packing) |
+| train_audio_layers | BOOLEAN | True | Also train audio_embeddings and audio_heads |
+
+Output: `train_config` dict — connect to the LoRA Trainer node.
+
+</details>
+
+<details>
+<summary><strong>7. OmniVoice Dataset Maker</strong> — Create a training dataset from paired audio + text files</summary>
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| audio_directory | STRING | "" | Path to folder with paired .wav + .txt files |
+| language_id | STRING | "en" | Language code (en, zh, ja, de, etc.) |
+
+Output: `dataset_path` — path to JSONL manifest for the Trainer node.
+
+</details>
+
+<details>
+<summary><strong>8. OmniVoice LoRA Trainer</strong> — Train a LoRA adapter on your voice data</summary>
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| model_name | COMBO | OmniVoice | Base OmniVoice model to fine-tune |
+| train_config | OMNIVOICE_TRAIN_CONFIG | required | Config from Train Config node |
+| dataset_path | STRING | "" | Path to JSONL manifest from Dataset Maker |
+| output_name | STRING | omnivoice_lora_v1 | Subfolder name in models/loras/ |
+| max_steps | INT | 1000 | Total training steps |
+| save_every_steps | INT | 200 | Save checkpoint every N steps |
+
+Output: `lora_path` — path to saved LoRA. All 4 inference nodes have a `lora_name` dropdown to select trained LoRAs.
+
+**Warning:** Blocks the ComfyUI UI during training. Use the interrupt button to cancel.
+
+See the [LoRA Training Guide](docs/LORA_TRAINING.md) for full instructions.
 
 </details>
 

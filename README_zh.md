@@ -21,6 +21,7 @@
 - **自动下载** — 首次使用时自动从HuggingFace下载模型
 - **Whisper ASR缓存** — 预加载Whisper避免每次重新下载
 - **显存高效** — 自动CPU卸载，VBAR/aimdo集成，智能缓存失效
+- **LoRA训练** — 使用PEFT LoRA微调OmniVoice学习你的声音，支持序列打包和torch.compile
 
 ## 安装
 
@@ -176,6 +177,60 @@ python install.py
 | dtype | COMBO | auto | `auto`、`bf16`、`fp16`、`fp32` |
 
 **自动下载：** 选择带"(auto-download)"后缀的模型可在首次使用时自动下载。
+
+</details>
+
+<details>
+<summary><strong>6. OmniVoice Train Config</strong> — 配置LoRA训练超参数</summary>
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| learning_rate | FLOAT | 5e-5 | 优化器学习率 |
+| lora_rank | INT | 32 | LoRA适配器的秩（维度） |
+| lora_alpha | INT | 16 | LoRA的Alpha缩放因子 |
+| lora_dropout | FLOAT | 0.0 | LoRA层的Dropout概率 |
+| warmup_steps | INT | 100 | 学习率调度器的预热步数 |
+| grad_accum_steps | INT | 1 | 梯度累积步数 |
+| weight_decay | FLOAT | 0.01 | 正则化权重衰减 |
+| target_modules | STRING | q_proj,k_proj,v_proj,o_proj | Qwen3骨干中的目标模块（逗号分隔） |
+| sequence_packing | BOOLEAN | False | 将多个样本打包成一个序列（推荐） |
+| batch_tokens | INT | 4096 | 打包序列的最大token长度（4096约需24GB显存） |
+| torch_compile | BOOLEAN | False | 编译模型加速训练（推荐开启打包时使用） |
+| train_audio_layers | BOOLEAN | True | 同时训练audio_embeddings和audio_heads |
+
+输出：`train_config` 字典 — 连接到LoRA训练器节点。
+
+</details>
+
+<details>
+<summary><strong>7. OmniVoice Dataset Maker</strong> — 从配对的音频+文本文件创建训练数据集</summary>
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| audio_directory | STRING | "" | 配对的 .wav + .txt 文件所在文件夹路径 |
+| language_id | STRING | "en" | 语言代码（en、zh、ja、de等） |
+
+输出：`dataset_path` — JSONL清单文件路径，用于训练器节点。
+
+</details>
+
+<details>
+<summary><strong>8. OmniVoice LoRA Trainer</strong> — 在你的声音数据上训练LoRA适配器</summary>
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| model_name | COMBO | OmniVoice | 要微调的基础OmniVoice模型 |
+| train_config | OMNIVOICE_TRAIN_CONFIG | 必填 | 训练配置节点的输出 |
+| dataset_path | STRING | "" | Dataset Maker生成的JSONL清单路径 |
+| output_name | STRING | omnivoice_lora_v1 | models/loras/中的子文件夹名称 |
+| max_steps | INT | 1000 | 总训练步数 |
+| save_every_steps | INT | 200 | 每N步保存检查点 |
+
+输出：`lora_path` — 已保存LoRA的路径。所有4个推理节点都有 `lora_name` 下拉菜单可选择已训练的LoRA。
+
+**注意：** 训练期间会阻塞ComfyUI界面。使用中断按钮取消。
+
+详见 [LoRA训练指南](docs/LORA_TRAINING_zh.md)。
 
 </details>
 
