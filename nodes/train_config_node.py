@@ -92,25 +92,13 @@ class OmniVoice_TrainConfig:
                         "Options: q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj",
                     },
                 ),
-                "batch_size": (
-                    "INT",
-                    {
-                        "default": 1,
-                        "min": 1,
-                        "max": 8,
-                        "tooltip": "Number of samples per training step. Increase for better GPU utilization. "
-                        "VRAM scales roughly linearly: batch=2 ~8GB, batch=4 ~10-12GB. "
-                        "Ignored when Sequence Packing is enabled.",
-                    },
-                ),
                 "sequence_packing": (
                     "BOOLEAN",
                     {
                         "default": False,
                         "tooltip": "Pack multiple short samples into one fixed-length sequence (up to batch_tokens). "
                         "Uses block attention masking so samples don't attend across boundaries. "
-                        "Overrides batch_size — packed mode always uses batch_size=1 per step. "
-                        "Most efficient use of GPU compute when samples vary in length.",
+                        "Most efficient use of GPU compute. Recommended for best training results.",
                     },
                 ),
                 "batch_tokens": (
@@ -122,7 +110,7 @@ class OmniVoice_TrainConfig:
                         "step": 512,
                         "tooltip": "Maximum total token length per packed sequence when Sequence Packing is enabled. "
                         "Short samples get concatenated up to this length. "
-                        "Higher = more samples per step = more VRAM. 4096 is a safe starting point. "
+                        "4096 uses ~24GB VRAM. Lower to 2048 for less VRAM, raise to 8192 if you have headroom. "
                         "Ignored when Sequence Packing is disabled.",
                     },
                 ),

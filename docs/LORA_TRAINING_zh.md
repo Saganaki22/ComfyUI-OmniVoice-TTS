@@ -9,7 +9,7 @@
    pip install peft safetensors
    ```
 2. **GPU 显存 >= 8 GB**（OmniVoice ~0.6B 参数 + LoRA 开销）
-3. **语音数据** — 配对的 `.wav` 文件 + `.txt` 文本
+3. **语音数据** — 配对的音频文件 + `.txt` 文本
 
 ## 准备数据集
 
@@ -31,7 +31,7 @@ my_voice_data/
 ### 音频要求
 
 - **格式**：`.wav`、`.mp3`、`.flac`、`.ogg` 或 `.m4a`
-- **时长**：每条 3–15 秒为佳
+- **时长**：每条 3–20 秒
 - **质量**：干净、无背景噪音、音量一致
 - **内容**：自然朗读句子、段落或文稿
 - **数量**：至少 20–100 条（越多越好）
@@ -52,18 +52,17 @@ my_voice_data/
 
 | 参数 | 默认值 | 推荐范围 | 说明 |
 |---|---|---|---|
-| `learning_rate` | 5e-5 | 1e-5 – 1e-4 | 数据多时用更小值 |
-| `lora_rank` | 32 | 16 – 64 | 越大容量越大，显存越多 |
+| `learning_rate` | 5e-5 | — | 保持默认 — 已测试有效 |
+| `lora_rank` | 32 | 16 – 64 | 32 是最佳值。越大容量越大，显存越多 |
 | `lora_alpha` | 16 | 8 – 32 | 通常为 rank 的一半 |
 | `lora_dropout` | 0.0 | 0.0 – 0.1 | 过拟合时添加 |
 | `warmup_steps` | 100 | 50 – 200 | 约为总步数的 10% |
 | `grad_accum_steps` | 1 | 1 – 4 | 显存不足时增大 |
 | `weight_decay` | 0.01 | 0.0 – 0.05 | 正则化 |
 | `target_modules` | q_proj,k_proj,v_proj,o_proj | — | 加 gate_proj,up_proj,down_proj 可更深适配 |
-| `batch_size` | 1 | 1 – 8 | 每步样本数。batch=2 ~8GB, batch=4 ~10-12GB 显存。启用序列打包时忽略 |
-| `sequence_packing` | False | — | 将多个短样本打包成一个序列。覆盖 batch_size。最 GPU 高效选项 |
-| `batch_tokens` | 4096 | 2048 – 8192 | 打包序列的最大 token 长度（仅在启用序列打包时使用） |
-| `torch_compile` | False | — | 编译模型以加速训练。强烈建议在启用序列打包时开启 — 否则 flex_attention 会非常慢。启动时有约 30-60 秒的一次性编译开销 |
+| `sequence_packing` | False | — | 将多个样本打包成一个序列。推荐开启，训练质量最佳 |
+| `batch_tokens` | 4096 | 2048 – 8192 | 打包序列的最大 token 长度。4096 约需 24GB 显存 |
+| `torch_compile` | False | — | 编译模型以加速训练。强烈建议在启用序列打包时开启。启动时有约 30-60 秒的一次性编译开销 |
 | `train_audio_layers` | True | True | 推荐 — 适配音频接口层 |
 
 ### 节点 2：OmniVoice Dataset Maker
@@ -77,15 +76,15 @@ my_voice_data/
 - 连接节点 1 的 `train_config` 输出
 - 设置 `dataset_path` 为节点 2 的输出
 - 配置：
-  - `max_steps`：小数据集 500–2000，大数据集 2000–5000
-  - `save_every_steps`：200–500（保存中间检查点）
+  - `max_steps`：250–1000 步效果最佳（见下方训练建议）
+  - `save_every_steps`：250（保存检查点用于对比）
   - `output_name`：LoRA 输出的文件夹名称
 
 **注意**：训练过程会阻塞 ComfyUI 界面。使用中断按钮取消。
 
 ## 使用训练好的 LoRA
 
-训练完成后，LoRA 保存到 `models/loras/<output_name>/`。所有 4 个 OmniVoice 推理节点都新增了 `lora_name` 下拉菜单：
+训练完成后，LoRA 保存到 `models/loras/<output_name>/`。所有 4 个 OmniVoice 推理节点都有 `lora_name` 下拉菜单：
 
 1. 打开任意 OmniVoice TTS 节点（长文本、声音克隆、声音设计、多说话人）
 2. 从 `lora_name` 下拉菜单选择你的 LoRA
@@ -93,40 +92,55 @@ my_voice_data/
 
 ## 训练建议
 
-### 训练步数参考
+### 实测配置（40 条音频，每条 8–20 秒）
 
-| 数据量 | 推荐步数 | 预期效果 |
-|---|---|---|
-| 20–50 条 | 500–1000 | 基本声音相似 |
-| 50–200 条 | 1000–3000 | 较好的声音克隆 |
-| 200+ 条 | 3000–5000 | 高质量声音复制 |
+使用 40 条音频（每条 8–20 秒）+ 同名 `.txt` 文本进行实测，最佳设置：
+
+- **lora_rank**：32
+- **learning_rate**：5e-5（默认）
+- **sequence_packing**：True
+- **batch_tokens**：4096
+- **torch_compile**：True
+- **train_audio_layers**：True
+- **最佳检查点范围**：250–1000 步
+
+使用以上设置，loss 从约 4.8 平滑下降到约 1.7。声音相似度的最佳范围在 250–1000 步之间。40 条数据超过 1000 步有过拟合风险。
+
+### 何时停止训练
+
+观察 loss 并逐步测试检查点：
+
+| Loss 范围 | 声音质量 |
+|---|---|
+| ~5–6 | 刚开始，几乎听不出 |
+| ~3–4 | 有些相似 |
+| ~2–3 | 较好匹配 |
+| ~1–2 | 强克隆 |
+| <1 | 过拟合风险 — 可能声音生硬 |
+
+每 250 步保存检查点并逐一测试。声音最接近目标时停止。
 
 ### 常见问题
 
-- **显存不足 (OOM)**：降低 `lora_rank` 到 16，增大 `grad_accum_steps` 到 2–4，或降低 `batch_size` / `batch_tokens`
-- **训练太慢**：启用 `sequence_packing` 并设 `batch_tokens=4096` 获得最佳 GPU 利用率，或增大 `batch_size` 到 2–4
-- **GPU 显存未充分利用**：增大 `batch_size`（如 2–4）以利用更多显存。或启用 `sequence_packing` 获得最高效率
+- **显存不足 (OOM)**：降低 `lora_rank` 到 16，降低 `batch_tokens` 到 2048，或增大 `grad_accum_steps` 到 2–4
+- **训练太慢**：启用 `sequence_packing` + `torch_compile=True` + `batch_tokens=4096`
 - **Loss 不下降**：降低 `learning_rate` 到 1e-5，检查音频质量
 - **过拟合**（声音生硬）：减少 `max_steps`，添加 `lora_dropout` 0.05–0.1
-- **音频乱码**：确保源音频干净、兼容 24kHz、每条 3–15 秒
+- **音频乱码**：确保源音频干净、兼容 24kHz
 
 ### 训练内容说明
 
 - **Qwen3-0.6B 主干的 LoRA**：作用于注意力投影（q、k、v、o）。学习你的声音的文本→音频 token 映射。
 - **音频层**（`train_audio_layers=True` 时）：`audio_embeddings` 和 `audio_heads`。负责音频与 LLM 的接口，适配你的声音 token 分布。
 
-### 加速训练
+### 序列打包
 
-默认设置（batch_size=1、无打包）仅使用约 4 GB 显存。如果你的 GPU 有更多余量，可以大幅加速训练：
+推荐启用**序列打包**以获得最佳训练质量。它将多个样本拼接成一个固定长度的序列，使用块注意力掩码防止样本间的交叉注意力。这与 OmniVoice 上游训练使用的技术相同。
 
-| 方法 | 设置 | 显存影响 | 速度提升 |
-|---|---|---|---|
-| **增大 batch_size** | 设 `batch_size` 为 2–4 | 每个样本约 2-3 倍显存 | 接近线性加速 |
-| **启用序列打包** | 设 `sequence_packing=True` + `batch_tokens=4096` | 随 batch_tokens 增长 | 最高效 — 多个样本打包到一次前向传播 |
-
-**序列打包**是最 GPU 高效的选项。它将多个短样本拼接成一个固定长度的序列，使用块注意力掩码防止样本间的交叉注意力。这与 OmniVoice 上游训练使用的技术相同。
-
-启用 `sequence_packing` 后，`batch_size` 会被忽略（打包内部处理多样本）。使用 `batch_tokens` 控制打包序列长度 — 越高每步容纳更多样本，但显存越多。
+使用 `batch_tokens` 控制打包序列长度：
+- `4096` 约需 24GB 显存（推荐起点）
+- `2048` 显存更少（约 16GB）
+- `8192` 显存更多（约 32GB+）
 
 **重要**：使用序列打包时，请同时开启 `torch_compile`。没有编译时，PyTorch 的 flex_attention 会展开完整的注意力矩阵，速度极慢。编译后会生成融合核心，高效运行。
 

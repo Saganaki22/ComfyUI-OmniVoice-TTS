@@ -195,7 +195,6 @@ def run_lora_training(
         TokenizedAudioDataset,
         build_processor,
         collate_processed_sample,
-        collate_multi_sample,
         collate_packed_samples,
     )
 
@@ -295,20 +294,14 @@ def run_lora_training(
     logger.info("Step 3/4: Building dataset...")
     processor = build_processor(text_tokenizer)
 
-    batch_size = train_config.get("batch_size", 1)
     batch_tokens = train_config.get("batch_tokens", 4096)
 
     # When packing is enabled, force batch_size=1 (packing handles multi-sample internally)
     if sequence_packing:
-        effective_batch_size = 1
         logger.info(
             f"Sequence packing enabled: batch_tokens={batch_tokens}, "
-            f"batch_size overridden to 1 (packing handles multi-sample internally)"
+            f"batch_size=1 (packing handles multi-sample internally)"
         )
-    else:
-        effective_batch_size = batch_size
-        if batch_size > 1:
-            logger.info(f"Batch mode: batch_size={batch_size}")
 
     dataset = TokenizedAudioDataset(tokenized_manifest, shuffle=True, seed=42)
     data_iter = iter(dataset)
@@ -325,10 +318,9 @@ def run_lora_training(
     def get_next_batch():
         """Get and process samples, returning a collated batch dict.
 
-        Handles three modes:
+        Handles two modes:
           - Packing: accumulate samples up to batch_tokens, collate with document_ids
-          - batch>1: collect N samples, pad to longest
-          - batch=1: single sample (original behavior)
+          - Single: one sample per step (default)
         """
         if sequence_packing:
             # Pack samples up to batch_tokens total length
@@ -365,28 +357,8 @@ def run_lora_training(
                 device=device,
             )
 
-        elif effective_batch_size > 1:
-            # Collect batch_size samples and pad to longest
-            processed_list = []
-            for _ in range(effective_batch_size):
-                raw = get_next_sample()
-                try:
-                    processed_list.append(processor(raw))
-                except Exception as e:
-                    logger.warning(f"Skipping sample: {e}")
-                    continue
-
-            if not processed_list:
-                return None
-
-            return collate_multi_sample(
-                processed_list,
-                pad_token_id=text_tokenizer.pad_token_id,
-                device=device,
-            )
-
         else:
-            # Original single-sample mode
+            # Single-sample mode
             raw = get_next_sample()
             try:
                 processed = processor(raw)

@@ -4,9 +4,8 @@ Loads pre-tokenized audio data and applies OmniVoice's data augmentation
 (prompt ratio, mask ratio, condition dropout) using the upstream
 OmniVoiceSampleProcessor.
 
-Supports three batching modes:
-  - batch_size=1 (default): single sample per step, no padding needed
-  - batch_size>1: multiple samples padded to the longest in the batch
+Supports two batching modes:
+  - single sample (default): one sample per step, no padding needed
   - sequence_packing: multiple samples concatenated into one fixed-length
     sequence with document_ids for block attention masking
 """
@@ -163,73 +162,6 @@ def collate_processed_sample(processed: Dict[str, Any], device: str = "cpu") -> 
         "labels": labels,
         "audio_mask": audio_mask,
         "position_ids": position_ids,
-    }
-
-
-def collate_multi_sample(
-    processed_list: List[Dict[str, Any]],
-    pad_token_id: int,
-    device: str = "cpu",
-) -> Dict[str, torch.Tensor]:
-    """Collate multiple processed samples into one batch with padding.
-
-    Pads all samples to the length of the longest sample in the batch.
-    Uses right-side padding with:
-      - input_ids: pad_token_id
-      - labels: -100 (ignored in loss)
-      - audio_mask: False
-      - position_ids: 0
-
-    Args:
-        processed_list: List of outputs from OmniVoiceSampleProcessor.
-        pad_token_id: Token ID used for padding input_ids.
-        device: Target device.
-
-    Returns:
-        Dict of batched tensors [B, C, L] / [B, L].
-    """
-    if not processed_list:
-        raise ValueError("Empty processed_list passed to collate_multi_sample")
-
-    if len(processed_list) == 1:
-        return collate_processed_sample(processed_list[0], device=device)
-
-    # Find max length
-    max_len = max(s["length"] for s in processed_list)
-    batch_size = len(processed_list)
-    num_channels = processed_list[0]["input_ids"].shape[0]
-
-    # Pre-allocate padded tensors
-    input_ids = torch.full(
-        (batch_size, num_channels, max_len), pad_token_id, dtype=torch.long
-    )
-    labels = torch.full(
-        (batch_size, num_channels, max_len), -100, dtype=torch.long
-    )
-    audio_mask = torch.zeros(batch_size, max_len, dtype=torch.bool)
-    position_ids = torch.zeros(batch_size, max_len, dtype=torch.long)
-
-    for i, sample in enumerate(processed_list):
-        length = sample["length"]
-        input_ids[i, :, :length] = sample["input_ids"]
-        labels[i, :, :length] = sample["labels"]
-        audio_mask[i, :length] = sample["audio_mask"]
-        position_ids[i, :length] = torch.arange(length, dtype=torch.long)
-
-    # 4D bidirectional attention mask for SDPA — matches upstream PaddingDataCollator.
-    # mask[b, 0, i, j] = True if position j is a real (non-padding) token for sample b.
-    # All query positions attend to all non-padding key positions.
-    valid = torch.zeros(batch_size, max_len, dtype=torch.bool)
-    for i, sample in enumerate(processed_list):
-        valid[i, :sample["length"]] = True
-    attention_mask = valid[:, None, None, :].expand(batch_size, 1, max_len, max_len).contiguous()
-
-    return {
-        "input_ids": input_ids.to(device),
-        "labels": labels.to(device),
-        "audio_mask": audio_mask.to(device),
-        "position_ids": position_ids.to(device),
-        "attention_mask": attention_mask.to(device),
     }
 
 
