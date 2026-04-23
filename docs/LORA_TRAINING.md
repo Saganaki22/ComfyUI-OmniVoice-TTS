@@ -32,7 +32,7 @@ my_voice_data/
 
 - **Format**: `.wav`, `.mp3`, `.flac`, `.ogg`, or `.m4a`
 - **Duration**: 3–20 seconds per file works well
-- **Quality**: Clean, no background noise, consistent volume
+- **Quality**: Clean, no background noise, consistent volume — **higher quality input = higher quality output**
 - **Content**: Natural speech — read sentences, paragraphs, or scripts
 - **Amount**: 20–100 files minimum for basic voice cloning (more = better)
 
@@ -112,7 +112,16 @@ Tested with 40 audio clips (8–20 seconds each) with matching `.txt` transcript
 - **train_audio_layers**: True
 - **Best checkpoint range**: 250–1000 steps
 
-With these settings, loss converges smoothly from ~4.8 down to ~1.7. Training speed is ~0.4s/step on RTX 5090 (1250 steps in ~500 seconds). The sweet spot for voice similarity was between steps 250–1000. Going beyond 1000 steps with 40 clips risks overfitting.
+With these settings, loss converges smoothly from ~4.8 down to ~1.7. Training speed is ~0.4s/step on RTX 5090 (1250 steps in ~500 seconds).
+
+**More steps doesn't always mean better.** Overtraining causes overfitting — the voice can sound robotic, distorted, or broken. The sweet spot for this dataset was **steps 250–750**. Checkpoints past step 1000 started degrading. Always test multiple checkpoints and pick the one that sounds closest to your target voice.
+
+### Real Example
+
+- **Dataset**: 40 audio clips + 40 `.txt` transcripts (same name), ~7 minutes total audio
+- **Settings**: rank=32, LR=5e-5, sequence_packing=True, batch_tokens=4096, torch_compile=True
+- **Training**: 1250 steps, ~500 seconds on RTX 5090
+- **Best checkpoints**: steps 250–750
 
 ### When to Stop Training
 
