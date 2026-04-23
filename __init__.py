@@ -221,6 +221,26 @@ if _deps_ready:
             "OmniVoiceMultiSpeakerTTS": "OmniVoice Multi-Speaker TTS",
         })
 
+        # Training nodes — optional, may not load if peft/safetensors missing
+        try:
+            from .nodes.train_config_node import OmniVoice_TrainConfig
+            from .nodes.dataset_maker_node import OmniVoice_DatasetMaker
+            from .nodes.lora_trainer_node import OmniVoice_LoRATrainer
+
+            NODE_CLASS_MAPPINGS.update({
+                "OmniVoice_TrainConfig": OmniVoice_TrainConfig,
+                "OmniVoice_DatasetMaker": OmniVoice_DatasetMaker,
+                "OmniVoice_LoRATrainer": OmniVoice_LoRATrainer,
+            })
+
+            NODE_DISPLAY_NAME_MAPPINGS.update({
+                "OmniVoice_TrainConfig": "OmniVoice Train Config",
+                "OmniVoice_DatasetMaker": "OmniVoice Dataset Maker",
+                "OmniVoice_LoRATrainer": "OmniVoice LoRA Trainer",
+            })
+        except Exception as e:
+            logger.info(f"Training nodes not loaded (non-critical): {e}")
+
         logger.info(
             f"Registered {len(NODE_CLASS_MAPPINGS)} nodes "
             f"(v{__version__}): {', '.join(NODE_DISPLAY_NAME_MAPPINGS.values())}"

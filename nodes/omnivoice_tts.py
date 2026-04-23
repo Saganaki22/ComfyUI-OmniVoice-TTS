@@ -18,6 +18,7 @@ from .loader import (
     to_numpy_audio,
     manual_seed_all,
 )
+from ..modules.lora_loader import get_available_loras, resolve_lora_path, apply_lora, remove_lora
 from .whisper_loader import find_local_whisper_model, load_whisper_pipeline
 from .model_cache import (
     cancel_event,
@@ -181,6 +182,7 @@ class OmniVoiceLongformTTS:
     @classmethod
     def INPUT_TYPES(cls):
         model_names = get_model_names()
+        lora_names = ["None"] + get_available_loras()
         return {
             "required": {
                 "model": (
@@ -189,6 +191,17 @@ class OmniVoiceLongformTTS:
                         "tooltip": (
                             "OmniVoice model checkpoint. "
                             "Models are stored in ComfyUI/models/omnivoice/"
+                        ),
+                    },
+                ),
+                "lora_name": (
+                    lora_names,
+                    {
+                        "default": "None",
+                        "tooltip": (
+                            "LoRA adapter from models/loras/. "
+                            "Trained via OmniVoice LoRA Trainer. "
+                            "Set to None for base model."
                         ),
                     },
                 ),
@@ -444,6 +457,7 @@ class OmniVoiceLongformTTS:
     def generate(
         self,
         model: str,
+        lora_name: str,
         text: str,
         ref_text: str,
         steps: int,
@@ -476,6 +490,14 @@ class OmniVoiceLongformTTS:
         omnivoice_model, _ = get_or_load_model(
             model, device, dtype, attention, keep_model_loaded
         )
+
+        # Apply LoRA adapter if selected
+        _original_audio = None
+        _lora_applied = False
+        lora_path = resolve_lora_path(lora_name)
+        if lora_path is not None:
+            _original_audio = apply_lora(omnivoice_model, lora_path)
+            _lora_applied = True
 
         # Set random seed early so Whisper transcription is also seeded
         actual_seed = seed if seed != 0 else torch.randint(0, 2**31, (1,)).item()
@@ -629,6 +651,9 @@ class OmniVoiceLongformTTS:
             )
 
         finally:
+            # Restore base model if LoRA was applied
+            if _lora_applied:
+                remove_lora(omnivoice_model, _original_audio)
             if not keep_model_loaded:
                 unload_model()
                 unload_whisper()

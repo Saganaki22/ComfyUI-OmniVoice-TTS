@@ -16,6 +16,7 @@ from .loader import (
     to_numpy_audio,
     manual_seed_all,
 )
+from ..modules.lora_loader import get_available_loras, resolve_lora_path, apply_lora, remove_lora
 from .model_cache import (
     cancel_event,
     get_or_load_model,
@@ -65,6 +66,17 @@ class OmniVoiceVoiceDesignTTS:
                         "tooltip": (
                             "OmniVoice model checkpoint. "
                             "Models are stored in ComfyUI/models/omnivoice/"
+                        ),
+                    },
+                ),
+                "lora_name": (
+                    ["None"] + get_available_loras(),
+                    {
+                        "default": "None",
+                        "tooltip": (
+                            "LoRA adapter from models/loras/. "
+                            "Trained via OmniVoice LoRA Trainer. "
+                            "Set to None for base model."
                         ),
                     },
                 ),
@@ -249,6 +261,7 @@ class OmniVoiceVoiceDesignTTS:
     def generate(
         self,
         model: str,
+        lora_name: str,
         text: str,
         voice_instruct: str,
         steps: int,
@@ -283,6 +296,14 @@ class OmniVoiceVoiceDesignTTS:
         omnivoice_model, _ = get_or_load_model(
             model, device, dtype, attention, keep_model_loaded
         )
+
+        # Apply LoRA adapter if selected
+        _original_audio = None
+        _lora_applied = False
+        lora_path = resolve_lora_path(lora_name)
+        if lora_path is not None:
+            _original_audio = apply_lora(omnivoice_model, lora_path)
+            _lora_applied = True
 
         pbar = ProgressBar(3) if _PBAR else None
 
@@ -339,6 +360,9 @@ class OmniVoiceVoiceDesignTTS:
                 pbar.update_absolute(3, 3)
 
         finally:
+            # Restore base model if LoRA was applied
+            if _lora_applied:
+                remove_lora(omnivoice_model, _original_audio)
             if not keep_model_loaded:
                 unload_model()
             else:

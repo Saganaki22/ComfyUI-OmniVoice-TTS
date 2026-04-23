@@ -179,6 +179,22 @@ def main():
                 # Last resort: force pip directly
                 run_cmd([sys.executable, "-m", "pip", "install", pip_name])
 
+    # STEP 3.5: Install training dependencies (optional — for LoRA training)
+    print("")
+    print("[OmniVoice] Step 3.5: Installing training dependencies (optional)...")
+
+    training_packages = [
+        ("peft", "peft", "LoRA/PEFT for fine-tuning"),
+        ("safetensors", "safetensors", "Safe tensor serialization"),
+    ]
+
+    for import_name, pip_name, description in training_packages:
+        if is_installed(import_name):
+            print(f"[OmniVoice] {description} ({pip_name}) - already installed")
+        else:
+            print(f"[OmniVoice] Installing {description} ({pip_name})...")
+            pip_install(pip_name)
+
     # STEP 4: Final verification
     print("")
     print("=" * 60)

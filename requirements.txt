@@ -13,3 +13,7 @@
 # transformers               (>= 4.57, managed by ComfyUI — only upgraded if too old)
 # torch                      (managed by ComfyUI — NEVER touched by install.py)
 # torchaudio                 (managed by ComfyUI — NEVER touched by install.py)
+#
+# --- LoRA training dependencies (optional) ---
+# peft                        (LoRA/PEFT for fine-tuning the Qwen3 backbone)
+# safetensors                 (safe tensor serialization for LoRA checkpoints)

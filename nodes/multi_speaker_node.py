@@ -20,6 +20,7 @@ from .loader import (
     to_numpy_audio,
     manual_seed_all,
 )
+from ..modules.lora_loader import get_available_loras, resolve_lora_path, apply_lora, remove_lora
 from .model_cache import (
     cancel_event,
     get_or_cache_whisper,
@@ -217,6 +218,15 @@ if _V3:
                             "Models are stored in ComfyUI/models/omnivoice/"
                         ),
                     ),
+                    IO.Combo.Input(
+                        "lora_name",
+                        options=["None"] + get_available_loras(),
+                        tooltip=(
+                            "LoRA adapter from models/loras/. "
+                            "Trained via OmniVoice LoRA Trainer. "
+                            "Set to None for base model."
+                        ),
+                    ),
                     IO.String.Input(
                         "text",
                         multiline=True,
@@ -329,6 +339,7 @@ if _V3:
         def execute(
             cls,
             model: str,
+            lora_name: str,
             text: str,
             steps: int,
             guidance_scale: float,
@@ -374,6 +385,14 @@ if _V3:
             omnivoice_model, _ = get_or_load_model(
                 model, device, dtype, attention, keep_model_loaded
             )
+
+            # Apply LoRA adapter if selected
+            _original_audio = None
+            _lora_applied = False
+            lora_path = resolve_lora_path(lora_name)
+            if lora_path is not None:
+                _original_audio = apply_lora(omnivoice_model, lora_path)
+                _lora_applied = True
 
             # Parse dialogue
             dialogue_lines = _parse_dialogue_lines(text)
@@ -496,6 +515,9 @@ if _V3:
                 result = numpy_audio_to_comfy(audio_out, sample_rate)
 
             finally:
+                # Restore base model if LoRA was applied
+                if _lora_applied:
+                    remove_lora(omnivoice_model, _original_audio)
                 if not keep_model_loaded:
                     unload_model()
                     unload_whisper()
@@ -582,6 +604,17 @@ else:
                             "Models are stored in ComfyUI/models/omnivoice/"
                         ),
                     }),
+                    "lora_name": (
+                        ["None"] + get_available_loras(),
+                        {
+                            "default": "None",
+                            "tooltip": (
+                                "LoRA adapter from models/loras/. "
+                                "Trained via OmniVoice LoRA Trainer. "
+                                "Set to None for base model."
+                            ),
+                        },
+                    ),
                     "text": ("STRING", {
                         "multiline": True,
                         "default": (
@@ -654,7 +687,7 @@ else:
 
         def generate(
             self,
-            model, text, num_speakers, steps, guidance_scale, t_shift, speed,
+            model, lora_name, text, num_speakers, steps, guidance_scale, t_shift, speed,
             pause_between_speakers, device, dtype, attention,
             position_temperature, class_temperature, layer_penalty_factor,
             denoise, preprocess_prompt, postprocess_output,
@@ -685,6 +718,14 @@ else:
             omnivoice_model, _ = get_or_load_model(
                 model, device, dtype, attention, keep_model_loaded
             )
+
+            # Apply LoRA adapter if selected
+            _original_audio = None
+            _lora_applied = False
+            lora_path = resolve_lora_path(lora_name)
+            if lora_path is not None:
+                _original_audio = apply_lora(omnivoice_model, lora_path)
+                _lora_applied = True
 
             # Parse dialogue
             dialogue_lines = _parse_dialogue_lines(text)
@@ -822,6 +863,9 @@ else:
                 result = numpy_audio_to_comfy(audio_out, sample_rate)
 
             finally:
+                # Restore base model if LoRA was applied
+                if _lora_applied:
+                    remove_lora(omnivoice_model, _original_audio)
                 if not keep_model_loaded:
                     unload_model()
                     unload_whisper()
