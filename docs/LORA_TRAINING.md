@@ -104,7 +104,7 @@ Tested with 40 audio clips (8–20 seconds each) with matching `.txt` transcript
 - **train_audio_layers**: True
 - **Best checkpoint range**: 250–1000 steps
 
-With these settings, loss converges smoothly from ~4.8 down to ~1.7. The sweet spot for voice similarity was between steps 250–1000. Going beyond 1000 steps with 40 clips risks overfitting.
+With these settings, loss converges smoothly from ~4.8 down to ~1.7. Training speed is ~0.4s/step on RTX 5090 (1250 steps in ~500 seconds). The sweet spot for voice similarity was between steps 250–1000. Going beyond 1000 steps with 40 clips risks overfitting.
 
 ### When to Stop Training
 
