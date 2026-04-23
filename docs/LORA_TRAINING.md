@@ -36,6 +36,14 @@ my_voice_data/
 - **Content**: Natural speech — read sentences, paragraphs, or scripts
 - **Amount**: 20–100 files minimum for basic voice cloning (more = better)
 
+### Total Audio Duration
+
+| Total Duration | Quality | Speed |
+|---|---|---|
+| 2–5 minutes | Minimum for basic results | Fast |
+| 6–10 minutes | Recommended — good voice cloning | Moderate |
+| 11–30 minutes | Best results — strongest voice replication | Slowest |
+
 ### Text Guidelines
 
 - Plain text, one sentence or phrase per `.txt` file
