@@ -1,0 +1,218 @@
+{
+  "id": "cd22e353-950d-4638-b8c6-d83f864971fa",
+  "revision": 0,
+  "last_node_id": 4,
+  "last_link_id": 3,
+  "nodes": [
+    {
+      "id": 2,
+      "type": "OmniVoice_DatasetMaker",
+      "pos": [
+        -255.84344185722,
+        5142.036744713219
+      ],
+      "size": [
+        331.5315040359926,
+        122.44985747419105
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "dataset_path",
+          "type": "STRING",
+          "links": [
+            3
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "ComfyUI-omnivoice-tts",
+        "ver": "6a97d4cfe505635d03f44e152f9c7376a1e4834d",
+        "Node name for S&R": "OmniVoice_DatasetMaker"
+      },
+      "widgets_values": [
+        "point/this/to/your/dataset/directory",
+        "train.jsonl",
+        "en"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "OmniVoice_LoRATrainer",
+      "pos": [
+        152.74789492942125,
+        4962.5186748164515
+      ],
+      "size": [
+        270,
+        154
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "train_config",
+          "type": "OMNIVOICE_TRAIN_CONFIG",
+          "link": 2
+        },
+        {
+          "name": "dataset_path",
+          "type": "STRING",
+          "widget": {
+            "name": "dataset_path"
+          },
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "lora_path",
+          "type": "STRING",
+          "links": [
+            1
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "ComfyUI-omnivoice-tts",
+        "ver": "6a97d4cfe505635d03f44e152f9c7376a1e4834d",
+        "Node name for S&R": "OmniVoice_LoRATrainer"
+      },
+      "widgets_values": [
+        "OmniVoice-bf16",
+        "",
+        "omnivoice_lora",
+        1250,
+        200
+      ]
+    },
+    {
+      "id": 3,
+      "type": "ShowText|pysssss",
+      "pos": [
+        478.30025614006337,
+        4957.919065359831
+      ],
+      "size": [
+        403.19751041643553,
+        147.9681068398404
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "shape": 6,
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-custom-scripts",
+        "ver": "609f3afaa74b2f88ef9ce8d939626065e3247469",
+        "Node name for S&R": "ShowText|pysssss"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 1,
+      "type": "OmniVoice_TrainConfig",
+      "pos": [
+        -240.38733866560284,
+        4687.667971256989
+      ],
+      "size": [
+        270,
+        346
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "train_config",
+          "type": "OMNIVOICE_TRAIN_CONFIG",
+          "links": [
+            2
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "ComfyUI-omnivoice-tts",
+        "ver": "6a97d4cfe505635d03f44e152f9c7376a1e4834d",
+        "Node name for S&R": "OmniVoice_TrainConfig"
+      },
+      "widgets_values": [
+        0.00005,
+        32,
+        16,
+        0,
+        100,
+        1,
+        0.01,
+        "q_proj,k_proj,v_proj,o_proj",
+        1,
+        false,
+        2048,
+        true,
+        true
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      4,
+      0,
+      3,
+      0,
+      "STRING"
+    ],
+    [
+      2,
+      1,
+      0,
+      4,
+      0,
+      "OMNIVOICE_TRAIN_CONFIG"
+    ],
+    [
+      3,
+      2,
+      0,
+      4,
+      1,
+      "STRING"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.5989500000000093,
+      "offset": [
+        1205.470938334448,
+        -4260.925788880392
+      ]
+    },
+    "frontendVersion": "1.42.11",
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true
+  },
+  "version": 0.4
+}
