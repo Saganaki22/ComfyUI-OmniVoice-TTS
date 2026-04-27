@@ -10,6 +10,7 @@
 # sentencepiece    --no-deps
 # jieba            --no-deps
 # soxr                       (audio resampling, required by transformers HiggsAudio tokenizer)
+# huggingface_hub            (model auto-downloads)
 # transformers               (>= 4.57, managed by ComfyUI — only upgraded if too old)
 # torch                      (managed by ComfyUI — NEVER touched by install.py)
 # torchaudio                 (managed by ComfyUI — NEVER touched by install.py)

@@ -319,7 +319,7 @@ class OmniVoiceVoiceDesignTTS:
                 gen_kwargs["duration"] = duration
 
             # Generate audio with voice design
-            with torch.no_grad():
+            with torch.inference_mode():
                 audio_list = omnivoice_model.generate(**gen_kwargs)
 
             if pbar:

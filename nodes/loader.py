@@ -353,6 +353,14 @@ def comfy_audio_to_numpy(audio_dict: dict, target_sr: Optional[int] = None) -> T
     return audio_np, source_sr
 
 
+def transcribe_with_whisper(pipe, audio_np: np.ndarray, sample_rate: int) -> str:
+    """Transcribe in-memory audio with a HuggingFace ASR pipeline."""
+    result = pipe({"array": audio_np.astype(np.float32, copy=False), "sampling_rate": sample_rate})
+    if isinstance(result, dict):
+        return str(result.get("text", "")).strip()
+    return str(result).strip()
+
+
 def _resolve_attn_implementation(attention: str, device: str) -> str | None:
     """Resolve attention implementation for OmniVoice's Qwen3 LLM backbone.
 
@@ -459,6 +467,8 @@ def load_model(
         target_device = "cuda:0"
     elif device_str == "mps":
         target_device = "mps"
+    elif device_str == "xpu":
+        target_device = "xpu"
     else:
         target_device = "cpu"
 

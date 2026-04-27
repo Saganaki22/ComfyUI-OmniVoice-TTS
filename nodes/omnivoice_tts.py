@@ -16,6 +16,7 @@ from .loader import (
     numpy_audio_to_comfy,
     comfy_audio_to_numpy,
     to_numpy_audio,
+    transcribe_with_whisper,
     manual_seed_all,
 )
 from .whisper_loader import find_local_whisper_model, load_whisper_pipeline
@@ -484,6 +485,7 @@ class OmniVoiceLongformTTS:
         use_voice_clone = ref_audio is not None
 
         ref_audio_tensor = None
+        effective_ref_text = ref_text.strip()
         if use_voice_clone:
             logger.info("Processing reference audio for voice cloning...")
             ref_audio_np, _ = comfy_audio_to_numpy(ref_audio, target_sr=OMNIVOICE_SAMPLE_RATE)
@@ -501,12 +503,15 @@ class OmniVoiceLongformTTS:
                     "longer than recommended 15s may cause issues."
                 )
 
-            if not ref_text.strip() and whisper_model is not None:
+            if not effective_ref_text and whisper_model is not None:
                 whisper_pipe = get_or_cache_whisper(whisper_model, model, device, dtype)
                 if whisper_pipe is not None:
                     logger.info("Using pre-loaded Whisper ASR for voice transcription")
-                    omnivoice_model._asr_pipe = whisper_pipe
-            elif not ref_text.strip():
+                    effective_ref_text = transcribe_with_whisper(
+                        whisper_pipe, ref_audio_np, OMNIVOICE_SAMPLE_RATE
+                    )
+                    offload_whisper_to_cpu()
+            elif not effective_ref_text:
                 # Check for locally downloaded Whisper before letting OmniVoice download
                 local_name = find_local_whisper_model()
                 if local_name is not None:
@@ -520,7 +525,10 @@ class OmniVoiceLongformTTS:
                             {"pipeline": pipe, "model_name": local_name},
                             model, device, dtype,
                         )
-                        omnivoice_model._asr_pipe = pipe
+                        effective_ref_text = transcribe_with_whisper(
+                            pipe, ref_audio_np, OMNIVOICE_SAMPLE_RATE
+                        )
+                        offload_whisper_to_cpu()
                     except Exception as e:
                         logger.warning(f"Failed to load local Whisper: {e}")
                         logger.info("No ref_text — Whisper will auto-transcribe (downloads if not cached)")
@@ -577,8 +585,8 @@ class OmniVoiceLongformTTS:
                     gen_kwargs["ref_text"] = first_chunk_text
                 elif use_voice_clone:
                     gen_kwargs["ref_audio"] = (ref_audio_tensor, OMNIVOICE_SAMPLE_RATE)
-                    if ref_text.strip():
-                        gen_kwargs["ref_text"] = ref_text.strip()
+                    if effective_ref_text:
+                        gen_kwargs["ref_text"] = effective_ref_text
 
                 if instruct and instruct.strip():
                     gen_kwargs["instruct"] = instruct.strip()
@@ -586,7 +594,7 @@ class OmniVoiceLongformTTS:
                 if duration > 0:
                     gen_kwargs["duration"] = duration
 
-                with torch.no_grad():
+                with torch.inference_mode():
                     try:
                         audio_list = omnivoice_model.generate(**gen_kwargs)
                     except ValueError as e:

@@ -399,6 +399,11 @@ def get_or_load_model(
                 pass
             del omnivoice_patcher
             gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            if hasattr(torch, "xpu") and torch.xpu.is_available():
+                torch.xpu.empty_cache()
+            gc.collect()
             return get_raw_model(_cached_model), None
 
         if _cached_model is not None:

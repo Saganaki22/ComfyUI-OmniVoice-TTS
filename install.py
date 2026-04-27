@@ -162,6 +162,7 @@ def main():
         ("jieba", "jieba", "Chinese text segmentation"),
         ("pydub", "pydub", "Audio manipulation (required by omnivoice at import time)"),
         ("soxr", "soxr", "Audio resampling (required by transformers HiggsAudio tokenizer)"),
+        ("huggingface_hub", "huggingface_hub", "HuggingFace model downloads"),
     ]
 
     # Packages safe to install with --no-deps (no transitive deps that
