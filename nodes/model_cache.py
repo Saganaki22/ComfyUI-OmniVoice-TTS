@@ -242,10 +242,6 @@ def _do_unload() -> None:
         return
     logger.info("Unloading OmniVoice model from memory...")
     _unregister_from_comfy()
-    try:
-        get_raw_model(_cached_model).to("cpu")
-    except Exception:
-        pass
     del _cached_model
     _cached_model = None
     _cached_key = ()
@@ -392,11 +388,9 @@ def get_or_load_model(
         if _cached_model is not None and _cached_key == key:
             logger.info("Another thread loaded the same model — using cached version.")
             _keep_loaded = keep_loaded
-            # Discard the duplicate we just loaded
-            try:
-                get_raw_model(omnivoice_patcher).to("cpu")
-            except Exception:
-                pass
+            # Discard the duplicate directly. Moving it to CPU before deletion
+            # can transiently allocate a full extra copy in system RAM on
+            # Windows/PyTorch portable builds.
             del omnivoice_patcher
             gc.collect()
             if torch.cuda.is_available():

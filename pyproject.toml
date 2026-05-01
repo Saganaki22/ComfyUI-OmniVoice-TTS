@@ -1,7 +1,7 @@
 [project]
 name = "ComfyUI-omnivoice-tts"
 description = "ComfyUI custom nodes for OmniVoice TTS | voice clone, multi-speaker, voice design, text-to-speech"
-version = "0.4.2"
+version = "0.4.3"
 license = {file = "LICENSE"}
 dependencies = []
 

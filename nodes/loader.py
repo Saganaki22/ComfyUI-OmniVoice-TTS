@@ -9,6 +9,7 @@ Handles:
 """
 
 import gc
+import importlib.util
 import logging
 from pathlib import Path
 from typing import Optional, Tuple
@@ -477,6 +478,8 @@ def load_model(
     load_kwargs = {
         "torch_dtype": dtype,
     }
+    if importlib.util.find_spec("accelerate") is not None:
+        load_kwargs["low_cpu_mem_usage"] = True
     if attn_impl is not None:
         load_kwargs["attn_implementation"] = attn_impl
 
