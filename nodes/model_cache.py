@@ -364,13 +364,21 @@ def get_or_load_model(
     # ---- Fast path / unload-under-lock ----
     with _cache_lock:
         if _cached_model is not None and _cached_key == key:
-            _keep_loaded = keep_loaded
-            if _offloaded or _was_evicted_by_comfy():
-                _do_resume(device_str)
-                logger.info(f"Resumed offloaded/evicted model to {device_str}.")
+            if _keep_loaded != keep_loaded:
+                logger.info(
+                    "keep_model_loaded changed — unloading cached model "
+                    "before next run."
+                )
+                _do_unload()
+                unload_whisper()
             else:
-                logger.info("Reusing cached OmniVoice model.")
-            return get_raw_model(_cached_model), None
+                _keep_loaded = keep_loaded
+                if _offloaded or _was_evicted_by_comfy():
+                    _do_resume(device_str)
+                    logger.info(f"Resumed offloaded/evicted model to {device_str}.")
+                else:
+                    logger.info("Reusing cached OmniVoice model.")
+                return get_raw_model(_cached_model), None
 
         if _cached_model is not None:
             logger.info(
@@ -386,19 +394,26 @@ def get_or_load_model(
     with _cache_lock:
         # Another thread may have loaded the same key while we waited
         if _cached_model is not None and _cached_key == key:
-            logger.info("Another thread loaded the same model — using cached version.")
-            _keep_loaded = keep_loaded
-            # Discard the duplicate directly. Moving it to CPU before deletion
-            # can transiently allocate a full extra copy in system RAM on
-            # Windows/PyTorch portable builds.
-            del omnivoice_patcher
-            gc.collect()
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            if hasattr(torch, "xpu") and torch.xpu.is_available():
-                torch.xpu.empty_cache()
-            gc.collect()
-            return get_raw_model(_cached_model), None
+            if _keep_loaded == keep_loaded:
+                logger.info("Another thread loaded the same model — using cached version.")
+                _keep_loaded = keep_loaded
+                # Discard the duplicate directly. Moving it to CPU before deletion
+                # can transiently allocate a full extra copy in system RAM on
+                # Windows/PyTorch portable builds.
+                del omnivoice_patcher
+                gc.collect()
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+                if hasattr(torch, "xpu") and torch.xpu.is_available():
+                    torch.xpu.empty_cache()
+                gc.collect()
+                return get_raw_model(_cached_model), None
+
+            logger.info(
+                "keep_model_loaded changed while loading — replacing cached model."
+            )
+            _do_unload()
+            unload_whisper()
 
         if _cached_model is not None:
             _do_unload()
